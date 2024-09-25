@@ -76,10 +76,10 @@
 #         return profile
 
 
-#serializers.py
+# serializers.py
 from django.contrib.auth import authenticate
 from rest_framework import serializers
-from .models import CustomUser,PatientProfile
+from .models import CustomUser, PatientProfile
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -138,17 +138,10 @@ class LoginSerializer(serializers.Serializer):
 
         return data
 
+
 class PatientProfileSerializer(serializers.ModelSerializer):
+    user = CustomUserSerializer(read_only=True)
+
     class Meta:
         model = PatientProfile
-        fields = '__all__'
-
-    def create(self, validated_data):
-        user = self.context['request'].user
-        profile, created = PatientProfile.objects.get_or_create(user=user, defaults=validated_data)
-        if not created:
-            # Update the profile if it already exists
-            for attr, value in validated_data.items():
-                setattr(profile, attr, value)
-            profile.save()
-        return profile
+        fields = "__all__"

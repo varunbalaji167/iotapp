@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import axiosInstance from "../services/AxiosInstance";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
-
+import axios from "axios";
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -13,13 +13,17 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axiosInstance.post("/users/login/", {
-        username,
-        password,
-      });
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/users/login/",
+        {
+          username,
+          password,
+        }
+      );
       const user = response.data.user;
       const token = response.data.token;
-      localStorage.setItem("token", token); // Store token
+      console.log(token);
+      localStorage.setItem("token", JSON.stringify(token)); // Store token
       login(user); // Use context to handle login and redirection
     } catch (error) {
       console.error("Login failed:", error.response?.data || error.message);
@@ -30,7 +34,9 @@ const Login = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-sm bg-white p-8 rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Login</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
+          Login
+        </h2>
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <input
