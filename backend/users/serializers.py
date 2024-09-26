@@ -79,7 +79,7 @@
 # serializers.py
 from django.contrib.auth import authenticate
 from rest_framework import serializers
-from .models import CustomUser, PatientProfile
+from .models import CustomUser, PatientProfile, DoctorProfile
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -145,3 +145,10 @@ class PatientProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = PatientProfile
         fields = "__all__"
+
+class DoctorProfileSerializer(serializers.ModelSerializer):
+    user = CustomUserSerializer(read_only=True)
+
+    class Meta:
+        model = DoctorProfile
+        fields = "__all__"        

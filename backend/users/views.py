@@ -89,8 +89,8 @@ from django.contrib.auth import authenticate, login
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import CustomUser, PatientProfile
-from .serializers import RegisterSerializer, LoginSerializer, PatientProfileSerializer
+from .models import CustomUser, PatientProfile, DoctorProfile
+from .serializers import RegisterSerializer, LoginSerializer, PatientProfileSerializer, DoctorProfileSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 
@@ -192,5 +192,69 @@ class PatientProfileView(APIView):
         )  # Update with complete data
         if serializer.is_valid():
             serializer.save()  # Save the updated patient data
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# View for handling doctor profile data
+class DoctorProfileView(APIView):
+    serializer_class = DoctorProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user  # Get the authenticated user from the request
+
+        try:
+            # Try to find a doctor profile for the user
+            doctor = DoctorProfile.objects.get(user=user)
+            serializer = self.serializer_class(doctor)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except DoctorProfile.DoesNotExist:
+            # If the doctor doesn't exist, create a new one
+            doctor = DoctorProfile.objects.create(user=user)
+            doctor.save()  # Save the new doctor record
+            serializer = self.serializer_class(doctor)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def post(self, request):
+        # Handle POST request to update the doctor profile data
+        user = request.user
+        try:
+            # Try to find the doctor profile for the user
+            doctor = DoctorProfile.objects.get(user=user)
+        except DoctorProfile.DoesNotExist:
+            return Response(
+                {"error": "Doctor profile not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = self.serializer_class(
+            doctor, data=request.data, partial=True
+        )  # partial=True allows partial updates
+        if serializer.is_valid():
+            serializer.save()  # Save the updated doctor data
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request):
+        # Handle PUT request to update the doctor profile
+        user = request.user
+        try:
+            # Try to find the doctor profile for the user
+            doctor = DoctorProfile.objects.get(user=user)
+        except DoctorProfile.DoesNotExist:
+            return Response(
+                {"error": "Doctor profile not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Check if the profile picture is being updated
+        if "profile_picture" in request.data and doctor.profile_picture:
+            # Delete the old profile picture
+            default_storage.delete(doctor.profile_picture.name)  # Remove the old file
+
+        serializer = self.serializer_class(doctor, data=request.data)  # Update with complete data
+        if serializer.is_valid():
+            serializer.save()  # Save the updated doctor data
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -1,113 +1,322 @@
 //src/components/DoctorProfile.jsx
-import React, { useState, useRef } from 'react';
-import axios from 'axios';
-import Webcam from 'react-webcam';
+import React, { useState, useEffect, useRef } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import Webcam from "react-webcam";
+import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 const DoctorProfile = () => {
-  const [name, setName] = useState('');
-  const [dob, setDob] = useState('');
-  const [experience, setExperience] = useState('');
-  const [specialization, setSpecialization] = useState('');
-  const [profilePicture, setProfilePicture] = useState(null);
+  const [profile, setProfile] = useState({
+    name: "",
+    dob: "",
+    specialization: "",
+    experience: "",
+    profile_picture: null,
+  });
+  const [newProfile, setNewProfile] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [isProfileCreated, setIsProfileCreated] = useState(false);
+  const { userRole } = useAuth();
   const webcamRef = useRef(null);
+  const [capturedImage, setCapturedImage] = useState(null);
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const token = JSON.parse(localStorage.getItem("token"));
+      if (!token) {
+        setError("Authentication token is missing.");
+        return;
+      }
 
-  const handleCapture = () => {
+      const getTokenInfo = (token) => {
+        try {
+          return jwtDecode(token.access);
+        } catch (error) {
+          setError("Invalid authentication token.");
+          return null;
+        }
+      };
+
+      const tokenInfo = getTokenInfo(token);
+
+      if (!tokenInfo) {
+        setError("Invalid authentication token.");
+        return;
+      }
+
+      const now = Date.now() / 1000;
+      if (tokenInfo.exp < now) {
+        setError("Authentication token has expired. Please log in again.");
+        return;
+      }
+
+      try {
+        const response = await axios.get(
+          "http://127.0.0.1:8000/api/users/doctorprofile/",
+          {
+            headers: {
+              Authorization: "Bearer " + token.access,
+            },
+          }
+        );
+        setProfile(response.data);
+        setIsProfileCreated(true);
+      } catch (error) {
+        if (error.response?.status === 404) {
+          setIsProfileCreated(false);
+        } else {
+          setError(
+            `Error fetching profile: ${
+              error.response?.data?.detail || error.message
+            }`
+          );
+        }
+      }
+    };
+
+    if (userRole === "doctor") {
+      fetchProfile();
+    }
+  }, [userRole]);
+
+  const captureImage = () => {
     const imageSrc = webcamRef.current.getScreenshot();
-    setProfilePicture(imageSrc);
+    setCapturedImage(imageSrc);
+  };
+
+  const base64ToBlob = (base64) => {
+    const byteString = atob(base64.split(",")[1]);
+    const mimeString = base64.split(",")[0].split(":")[1].split(";")[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ab], { type: mimeString });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('dob', dob);
-    formData.append('experience', experience);
-    formData.append('specialization', specialization);
-    if (profilePicture) {
-      formData.append('profile_picture', profilePicture);
-    }
+    setLoading(true);
 
-    try {
-      await axios.patch('http://localhost:8000/user/', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      alert('Profile updated successfully');
-    } catch (error) {
-      console.error('There was an error!', error);
+    const formData = new FormData();
+    const profileToSubmit = isProfileCreated ? newProfile : profile;
+
+    if (profileToSubmit && typeof profileToSubmit === "object") {
+      for (const [key, value] of Object.entries(profileToSubmit)) {
+        formData.append(key, value);
+      }
+
+      if (capturedImage) {
+        const imageBlob = base64ToBlob(capturedImage);
+        formData.append("profile_picture", imageBlob, "profile_picture.jpeg");
+      }
+
+      if (profile.profile_picture instanceof File) {
+        formData.append("profile_picture", profile.profile_picture);
+      }
+
+      try {
+        const token = JSON.parse(localStorage.getItem("token"))?.access;
+        if (!token) {
+          throw new Error("No authorization token found.");
+        }
+
+        if (isProfileCreated) {
+          await axios.put(
+            "http://127.0.0.1:8000/api/users/doctorprofile/",
+            formData,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          setSuccess("Profile updated successfully.");
+        } else {
+          await axios.post(
+            "http://127.0.0.1:8000/api/users/doctorprofile/",
+            formData,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          setSuccess("Profile created successfully.");
+          setIsProfileCreated(true);
+        }
+      } catch (error) {
+        console.error(
+          "Error submitting profile:",
+          error.response?.data || error.message
+        );
+        setError(
+          "Error submitting profile: " +
+            (error.response?.data?.detail || error.message)
+        );
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setError("Profile data is invalid.");
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (isProfileCreated) {
+      setNewProfile({ ...newProfile, [name]: value });
+    } else {
+      setProfile({ ...profile, [name]: value });
+    }
+  };
+  const handleFileChange = (e) => {
+    if (isProfileCreated) {
+      setNewProfile({ ...newProfile, profile_picture: e.target.files[0] });
+    } else {
+      setProfile({ ...profile, profile_picture: e.target.files[0] });
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 p-6">
-      <div className="w-full max-w-lg bg-white p-8 rounded-lg shadow-md">
-        <h1 className="text-3xl font-semibold mb-6 text-center text-gray-800">Doctor Profile</h1>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name:</label>
-            <input
-              id="name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+    <div className="max-w-md mx-auto bg-white shadow-md rounded-md p-4">
+      <h2 className="text-2xl font-bold mb-4">
+        {isProfileCreated ? "Update" : "Create"} Doctor Profile
+        {profile.profile_picture && (
+          <img
+            src={
+              profile.profile_picture.startsWith("data:image")
+                ? profile.profile_picture
+                : `http://127.0.0.1:8000${profile.profile_picture}`
+            }
+            alt="Current Profile"
+            className="mb-2 rounded-full"
+            style={{ width: "100px", height: "100px", objectFit: "cover" }}
+          />
+        )}
+      </h2>
+      {error && <p className="text-red-500">{error}</p>}
+      {success && <p className="text-green-500">{success}</p>}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="name" className="block text-sm font-medium">
+            Name
+          </label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            value={
+              isProfileCreated ? newProfile?.name || profile.name : profile.name
+            }
+            onChange={handleChange}
+            className="mt-1 block w-full p-2 border rounded-md"
+            required
+          />
+        </div>
+
+        <div>
+          <label htmlFor="dob" className="block text-sm font-medium">
+            Date of Birth
+          </label>
+          <input
+            type="date"
+            id="dob"
+            name="dob"
+            value={
+              isProfileCreated ? newProfile?.dob || profile.dob : profile.dob
+            }
+            onChange={handleChange}
+            className="mt-1 block w-full p-2 border rounded-md"
+            required
+          />
+        </div>
+
+        <div>
+          <label htmlFor="specialization" className="block text-sm font-medium">
+            Specialization
+          </label>
+          <input
+            type="text"
+            id="specialization"
+            name="specialization"
+            value={
+              isProfileCreated
+                ? newProfile?.specialization || profile.specialization
+                : profile.specialization
+            }
+            onChange={handleChange}
+            className="mt-1 block w-full p-2 border rounded-md"
+            required
+          />
+        </div>
+
+        <div>
+          <label htmlFor="experience" className="block text-sm font-medium">
+            Experience (years)
+          </label>
+          <input
+            type="number"
+            id="experience"
+            name="experience"
+            value={
+              isProfileCreated
+                ? newProfile?.experience || profile.experience
+                : profile.experience
+            }
+            onChange={handleChange}
+            className="mt-1 block w-full p-2 border rounded-md"
+            required
+          />
+        </div>
+
+        {/* Webcam section */}
+        <Webcam
+          audio={false}
+          ref={webcamRef}
+          screenshotFormat="image/jpeg"
+          width={300}
+          height={200}
+          className="border rounded-md"
+        />
+        {/* Preview of captured image */}
+        {capturedImage && (
+          <div>
+            <h3>Preview of captured image</h3>
+            <img
+              src={capturedImage}
+              alt="Captured"
+              className="mb-2 rounded-md"
             />
           </div>
-          <div className="space-y-2">
-            <label htmlFor="dob" className="block text-sm font-medium text-gray-700">Date of Birth:</label>
-            <input
-              id="dob"
-              type="date"
-              value={dob}
-              onChange={(e) => setDob(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="experience" className="block text-sm font-medium text-gray-700">Experience (years):</label>
-            <input
-              id="experience"
-              type="number"
-              value={experience}
-              onChange={(e) => setExperience(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="specialization" className="block text-sm font-medium text-gray-700">Specialization:</label>
-            <input
-              id="specialization"
-              type="text"
-              value={specialization}
-              onChange={(e) => setSpecialization(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div className="space-y-4">
-            <label className="block text-sm font-medium text-gray-700">Profile Picture:</label>
-            <div className="flex flex-col items-center">
-              <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" className="w-full max-w-xs border border-gray-300 rounded-lg mb-2" />
-              <button
-                type="button"
-                onClick={handleCapture}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                Capture
-              </button>
-              {profilePicture && <img src={profilePicture} alt="Profile" className="mt-4 w-full max-w-xs border border-gray-300 rounded-lg" />}
-            </div>
-          </div>
-          <button
-            type="submit"
-            className="w-full py-3 bg-blue-500 text-white font-semibold rounded-lg shadow-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            Save Profile
-          </button>
-        </form>
-      </div>
+        )}
+        <button
+          type="button"
+          onClick={captureImage}
+          className="bg-blue-500 text-white py-2 px-4 rounded-md mt-2"
+        >
+          Capture Image
+        </button>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="mt-2"
+        />
+
+        <button
+          type="submit"
+          className="bg-green-500 text-white py-2 px-4 rounded-md"
+        >
+          {isProfileCreated ? "Update" : "Create"} Profile
+        </button>
+      </form>
     </div>
   );
 };
-
 export default DoctorProfile;

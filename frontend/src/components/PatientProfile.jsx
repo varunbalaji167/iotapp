@@ -55,7 +55,7 @@ const PatientProfile = () => {
 
       try {
         const response = await axios.get(
-          "http://127.0.0.1:8000/api/users/profile/",
+          "http://127.0.0.1:8000/api/users/patientprofile/",
           {
             headers: {
               Authorization: "Bearer " + token.access,
@@ -127,7 +127,7 @@ const PatientProfile = () => {
 
         if (isProfileCreated) {
           await axios.put(
-            "http://127.0.0.1:8000/api/users/profile/",
+            "http://127.0.0.1:8000/api/users/patientprofile/",
             formData,
             {
               headers: {
@@ -139,7 +139,7 @@ const PatientProfile = () => {
           setSuccess("Profile updated successfully.");
         } else {
           await axios.post(
-            "http://127.0.0.1:8000/api/users/profile/",
+            "http://127.0.0.1:8000/api/users/patientprofile/",
             formData,
             {
               headers: {

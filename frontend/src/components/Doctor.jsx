@@ -1,12 +1,11 @@
-import React from 'react';
-import Navbar from './Navbar';
+import React from "react";
+import Navbar from "./Navbar";
 
 const Patient = () => {
   return (
     <div>
       <Navbar />
       <h1>Doctor Dashboard</h1>
-      {/* Patient-specific content here */}
     </div>
   );
 };
