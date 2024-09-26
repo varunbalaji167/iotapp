@@ -141,10 +141,11 @@ class LoginSerializer(serializers.Serializer):
 
 class PatientProfileSerializer(serializers.ModelSerializer):
     user = CustomUserSerializer(read_only=True)
+    unique_id = serializers.CharField(source='user.unique_id', read_only=True)
 
     class Meta:
         model = PatientProfile
-        fields = "__all__"
+        fields = ['user', 'unique_id', 'name', 'dob', 'blood_group', 'height', 'weight', 'profile_picture']
 
 class DoctorProfileSerializer(serializers.ModelSerializer):
     user = CustomUserSerializer(read_only=True)

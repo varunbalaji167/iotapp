@@ -49,6 +49,7 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.username
+    
 class PatientProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, to_field='unique_id')
     name = models.CharField(max_length=100, null=True, blank=True)

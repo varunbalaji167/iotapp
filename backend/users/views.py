@@ -258,3 +258,19 @@ class DoctorProfileView(APIView):
             serializer.save()  # Save the updated doctor data
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PatientProfileListView(APIView):
+    """
+    API view to retrieve all patient profiles.
+    """
+
+    permission_classes = [IsAuthenticated]  # Optional: Restricts access to authenticated users
+
+    def get(self, request):
+        """
+        Handle GET requests to return all patient profiles.
+        """
+        profiles = PatientProfile.objects.all()  # Query to get all patient profiles
+        serializer = PatientProfileSerializer(profiles, many=True)  # Serialize the profiles
+        return Response(serializer.data, status=status.HTTP_200_OK)  # Return the response

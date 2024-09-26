@@ -12,7 +12,7 @@
 # urls.py
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
-from .views import RegisterView, LoginView, PatientProfileView, DoctorProfileView
+from .views import RegisterView, LoginView, PatientProfileView, DoctorProfileView, PatientProfileListView
 
 
 urlpatterns = [
@@ -21,4 +21,5 @@ urlpatterns = [
     path("login/", LoginView.as_view(), name="login"),
     path("patientprofile/", PatientProfileView.as_view(), name="patientprofile"),
     path("doctorprofile/", DoctorProfileView.as_view(), name="doctorprofile"),
+    path('patient-profiles/', PatientProfileListView.as_view(), name='patient-profiles-list'),
 ]
