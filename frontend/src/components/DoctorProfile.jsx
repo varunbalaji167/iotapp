@@ -1,9 +1,11 @@
-//src/components/DoctorProfile.jsx
+// src/components/DoctorProfile.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import Webcam from "react-webcam";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const DoctorProfile = () => {
   const [profile, setProfile] = useState({
@@ -21,6 +23,8 @@ const DoctorProfile = () => {
   const { userRole } = useAuth();
   const webcamRef = useRef(null);
   const [capturedImage, setCapturedImage] = useState(null);
+  const navigate = useNavigate();
+
   useEffect(() => {
     const fetchProfile = async () => {
       const token = JSON.parse(localStorage.getItem("token"));
@@ -135,6 +139,20 @@ const DoctorProfile = () => {
             }
           );
           setSuccess("Profile updated successfully.");
+          Swal.fire({
+            icon: "success",
+            title: "Profile Updated!",
+            text: "Your profile has been updated successfully.",
+            timer: 1500,
+            showConfirmButton: false,
+            toast: true,
+            position: "top-end",
+            customClass: {
+              popup: "alert-box",
+            },
+          }).then(() => {
+            navigate("/doctor"); // Redirect to the doctor page
+          });
         } else {
           await axios.post(
             "http://127.0.0.1:8000/api/users/doctorprofile/",
@@ -147,6 +165,20 @@ const DoctorProfile = () => {
             }
           );
           setSuccess("Profile created successfully.");
+          Swal.fire({
+            icon: "success",
+            title: "Profile Created!",
+            text: "Your profile has been created successfully.",
+            timer: 1500,
+            showConfirmButton: false,
+            toast: true,
+            position: "top-end",
+            customClass: {
+              popup: "alert-box",
+            },
+          }).then(() => {
+            navigate("/doctor"); // Redirect to the doctor page
+          });
           setIsProfileCreated(true);
         }
       } catch (error) {
@@ -158,12 +190,38 @@ const DoctorProfile = () => {
           "Error submitting profile: " +
             (error.response?.data?.detail || error.message)
         );
+        Swal.fire({
+          icon: "error",
+          title: "Error!",
+          text:
+            error.response?.data?.detail ||
+            "There was an issue submitting your profile.",
+          timer: 2500,
+          showConfirmButton: false,
+          toast: true,
+          position: "top-end",
+          customClass: {
+            popup: "alert-box",
+          },
+        });
       } finally {
         setLoading(false);
       }
     } else {
       setError("Profile data is invalid.");
       setLoading(false);
+      Swal.fire({
+        icon: "error",
+        title: "Error!",
+        text: "Profile data is invalid.",
+        timer: 2500,
+        showConfirmButton: false,
+        toast: true,
+        position: "top-end",
+        customClass: {
+          popup: "alert-box",
+        },
+      });
     }
   };
 
@@ -175,6 +233,7 @@ const DoctorProfile = () => {
       setProfile({ ...profile, [name]: value });
     }
   };
+
   const handleFileChange = (e) => {
     if (isProfileCreated) {
       setNewProfile({ ...newProfile, profile_picture: e.target.files[0] });

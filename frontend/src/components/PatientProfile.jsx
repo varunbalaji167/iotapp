@@ -4,6 +4,8 @@ import { useAuth } from "../contexts/AuthContext";
 import Webcam from "react-webcam";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const PatientProfile = () => {
   const [profile, setProfile] = useState({
@@ -22,6 +24,7 @@ const PatientProfile = () => {
   const { userRole } = useAuth();
   const webcamRef = useRef(null);
   const [capturedImage, setCapturedImage] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -137,6 +140,20 @@ const PatientProfile = () => {
             }
           );
           setSuccess("Profile updated successfully.");
+          Swal.fire({
+            icon: "success",
+            title: "Profile Updated!",
+            text: "Your profile has been updated successfully.",
+            timer: 1500,
+            showConfirmButton: false,
+            toast: true,
+            position: "top-end",
+            customClass: {
+              popup: "alert-box",
+            },
+          }).then(() => {
+            navigate("/patient"); // Redirect to the patient page
+          });
         } else {
           await axios.post(
             "http://127.0.0.1:8000/api/users/patientprofile/",
@@ -149,6 +166,20 @@ const PatientProfile = () => {
             }
           );
           setSuccess("Profile created successfully.");
+          Swal.fire({
+            icon: "success",
+            title: "Profile Created!",
+            text: "Your profile has been created successfully.",
+            timer: 1500,
+            showConfirmButton: false,
+            toast: true,
+            position: "top-end",
+            customClass: {
+              popup: "alert-box",
+            },
+          }).then(() => {
+            navigate("/patient"); // Redirect to the patient page
+          });
           setIsProfileCreated(true);
         }
       } catch (error) {
@@ -160,12 +191,38 @@ const PatientProfile = () => {
           "Error submitting profile: " +
             (error.response?.data?.detail || error.message)
         );
+        Swal.fire({
+          icon: "error",
+          title: "Error!",
+          text:
+            error.response?.data?.detail ||
+            "There was an issue submitting your profile.",
+          timer: 2500,
+          showConfirmButton: false,
+          toast: true,
+          position: "top-end",
+          customClass: {
+            popup: "alert-box",
+          },
+        });
       } finally {
         setLoading(false);
       }
     } else {
       setError("Profile data is invalid.");
       setLoading(false);
+      Swal.fire({
+        icon: "error",
+        title: "Error!",
+        text: "Profile data is invalid.",
+        timer: 2500,
+        showConfirmButton: false,
+        toast: true,
+        position: "top-end",
+        customClass: {
+          popup: "alert-box",
+        },
+      });
     }
   };
 
