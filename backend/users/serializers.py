@@ -4,7 +4,7 @@
 from django.contrib.auth import authenticate
 from rest_framework import serializers
 from .models import CustomUser, PatientProfile, DoctorProfile
-from .models import PatientData
+# from .models import PatientData
 
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -88,20 +88,20 @@ class DoctorProfileSerializer(serializers.ModelSerializer):
         model = DoctorProfile
         fields = "__all__"
 
-class PatientDataSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PatientData
-        fields = ['user', 'temperature']  # Only include user and temperature fields
-        read_only_fields = ['user']  # Making the user field read-only, as it's derived from the request
+# class PatientDataSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = PatientData
+#         fields = ['user', 'temperature']  # Only include user and temperature fields
+#         read_only_fields = ['user']  # Making the user field read-only, as it's derived from the request
 
-    def update(self, instance, validated_data):
-        """Update the instance's temperature field based on validated data."""
-        instance.temperature = validated_data.get('temperature', instance.temperature)
-        instance.save()
-        return instance
+#     def update(self, instance, validated_data):
+#         """Update the instance's temperature field based on validated data."""
+#         instance.temperature = validated_data.get('temperature', instance.temperature)
+#         instance.save()
+#         return instance
 
-    def validate_temperature(self, value):
-        """Custom validation for temperature."""
-        if value < -100 or value > 100:  # Example boundary values
-            raise serializers.ValidationError("Temperature must be between -100 and 100 degrees.")
-        return value
+#     def validate_temperature(self, value):
+#         """Custom validation for temperature."""
+#         if value < -100 or value > 100:  # Example boundary values
+#             raise serializers.ValidationError("Temperature must be between -100 and 100 degrees.")
+#         return value
