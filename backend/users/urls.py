@@ -7,6 +7,7 @@ from .views import (
     PatientProfileView,
     DoctorProfileView,
     PatientProfileListView,
+    PatientDataView
 )
 
 
@@ -21,4 +22,5 @@ urlpatterns = [
         PatientProfileListView.as_view(),
         name="patient-profiles-list",
     ),
+    path('patient-data/', PatientDataView.as_view(), name='patient_data'),
 ]

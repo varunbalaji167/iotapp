@@ -12,6 +12,16 @@ from .serializers import (
 )
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404
+from .models import PatientData, CustomUser
+from .serializers import PatientDataSerializer
+from django.http import JsonResponse
+from django.core.files.storage import default_storage
+import paho.mqtt.client as paho
+from paho import mqtt
 
 
 class RegisterView(generics.CreateAPIView):
@@ -205,3 +215,96 @@ class PatientProfileListView(APIView):
         return Response(
             serializer.data, status=status.HTTP_200_OK
         )  # Return the response
+
+
+
+
+# MQTT connection settings (use the settings you shared previously)
+broker_address = "ec2a9b483a244cecb4099b683f3a7495.s1.eu.hivemq.cloud"
+broker_port = 8883
+username = "hivemq.webclient.1725454073312"
+password = "4T5S2RK3GJckyvuz,<&."
+client_subscribe_topic = "Sensor"
+client_publish_topic = "Temperature"
+
+client = paho.Client(client_id="hivemq.webclient.1725453249369", userdata=None, protocol=paho.MQTTv5, callback_api_version=paho.CallbackAPIVersion.VERSION2)
+client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
+client.username_pw_set(username, password)
+client.connect(broker_address, broker_port, 60)
+client.loop_start()
+
+data = ""
+message_received = False
+
+def on_message(client, userdata, msg):
+    global data, message_received
+    message_received = True
+    data = msg.payload.decode().strip()
+
+client.on_message = on_message
+
+def publish_and_wait(message):
+    global message_received
+    client.subscribe(client_subscribe_topic, qos=2)
+    client.publish(client_publish_topic, payload=message, qos=2)
+    message_received = False
+    while not message_received:
+        pass
+    return data
+
+class PatientDataView(APIView):
+    def get(self, request):
+        """Handle GET request for retrieving sensor data and storing it in the database."""
+        user = request.user
+
+        # Fetch patient data if it exists, else create a new instance
+        patient_data, created = PatientData.objects.get_or_create(user=user)
+
+        # Get temperature data via MQTT
+        message = "Temperature"
+        temperature_data = publish_and_wait(message)
+
+        if created:
+            # First time data creation
+            patient_data.temperature = temperature_data
+            patient_data.save()
+
+        serializer = PatientDataSerializer(patient_data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        """Handle POST request to update patient sensor data."""
+        user = request.user
+        patient_data = get_object_or_404(PatientData, user=user)
+
+        # Get sensor data from MQTT server (for example, heart rate)
+        # message = "HeartRate"
+        # heart_rate_data = publish_and_wait(message)
+
+        # # Process heart rate data
+        # out = heart_rate_data.split(",")
+        # HR = out[1]
+        # SPO2 = out[0]
+
+        # patient_data.heart_rate = f"HR: {HR}, SPO2: {SPO2}"
+        # patient_data.save()
+        message = "Temperature"
+        temperature_data = publish_and_wait(message)
+
+        patient_data.temperature = temperature_data
+        patient_data.save()
+
+        serializer = PatientDataSerializer(patient_data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request):
+        """Handle PUT request to update an existing patient's data."""
+        user = request.user
+        patient_data = get_object_or_404(PatientData, user=user)
+
+        serializer = PatientDataSerializer(patient_data, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

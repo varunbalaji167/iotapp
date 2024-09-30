@@ -117,3 +117,18 @@ def delete_user_profile(sender, instance, **kwargs):
             instance.doctorprofile.delete()
         except DoctorProfile.DoesNotExist:
             pass  # If profile doesn't exist, no action needed
+
+from django.db import models
+from .models import CustomUser
+
+class PatientData(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, to_field="unique_id"
+    )
+    temperature = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    heart_rate = models.CharField(max_length=100, null=True, blank=True)  # Can include multiple values like HR and SPO2
+    weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    blood_pressure = models.CharField(max_length=100, null=True, blank=True)  # Format SYS, DIA, PULSE
+
+    def __str__(self):
+        return f"{self.user.username}'s Data"
