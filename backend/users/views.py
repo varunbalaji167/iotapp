@@ -222,12 +222,12 @@ class PatientProfileListView(APIView):
 # MQTT connection settings (use the settings you shared previously)
 broker_address = "ec2a9b483a244cecb4099b683f3a7495.s1.eu.hivemq.cloud"
 broker_port = 8883
-username = "hivemq.webclient.1725454073312"
-password = "4T5S2RK3GJckyvuz,<&."
+username = "hivemq.webclient.1727691519220"
+password = "!XK67Y,<Myb4JvL3>jgi"
 client_subscribe_topic = "Sensor"
 client_publish_topic = "Temperature"
 
-client = paho.Client(client_id="hivemq.webclient.1725453249369", userdata=None, protocol=paho.MQTTv5, callback_api_version=paho.CallbackAPIVersion.VERSION2)
+client = paho.Client(client_id="hivemq.webclient.1727691519220", userdata=None, protocol=paho.MQTTv5, callback_api_version=paho.CallbackAPIVersion.VERSION2)
 client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
 client.username_pw_set(username, password)
 client.connect(broker_address, broker_port, 60)
