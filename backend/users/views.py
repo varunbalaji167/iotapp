@@ -271,6 +271,8 @@ def publish_and_wait(message):
 
 #         serializer = PatientDataSerializer(patient_data)
 #         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 from rest_framework.permissions import IsAuthenticated
 
 class PatientDataView(APIView):
@@ -298,8 +300,8 @@ class PatientDataView(APIView):
 
         patient_data.save()
 
-        serializer = PatientDataSerializer(patient_data)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        # serializer = PatientDataSerializer(patient_data)
+        return Response(patient_data, status=status.HTTP_200_OK)
 
     def post(self, request):
         """Handle POST request that sends the message type to retrieve sensor data."""
@@ -317,41 +319,3 @@ class PatientDataView(APIView):
 
         # Call the GET method directly with the message_type as an argument
         return self.get(request, message_type=message_type)
-
-
-    # def post(self, request):
-    #     """Handle POST request to update patient sensor data."""
-    #     user = request.user
-    #     patient_data = get_object_or_404(PatientData, user=user)
-
-    #     # Get sensor data from MQTT server (for example, heart rate)
-    #     # message = "HeartRate"
-    #     # heart_rate_data = publish_and_wait(message)
-
-    #     # # Process heart rate data
-    #     # out = heart_rate_data.split(",")
-    #     # HR = out[1]
-    #     # SPO2 = out[0]
-
-    #     # patient_data.heart_rate = f"HR: {HR}, SPO2: {SPO2}"
-    #     # patient_data.save()
-    #     message = "Temperature"
-    #     temperature_data = publish_and_wait(message)
-
-    #     patient_data.temperature = temperature_data
-    #     patient_data.save()
-
-    #     serializer = PatientDataSerializer(patient_data)
-    #     return Response(serializer.data, status=status.HTTP_200_OK)
-
-    # def put(self, request):
-    #     """Handle PUT request to update an existing patient's data."""
-    #     user = request.user
-    #     patient_data = get_object_or_404(PatientData, user=user)
-
-    #     serializer = PatientDataSerializer(patient_data, data=request.data, partial=True)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data, status=status.HTTP_200_OK)
-
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
