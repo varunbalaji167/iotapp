@@ -274,7 +274,7 @@ def publish_and_wait(message):
 class PatientDataView(APIView):
     def get(self, request):
         """Handle GET request for retrieving sensor data and storing it in the database."""
-        # user = request.user
+        user = request.user
         message_type = request.query_params.get('message', None)
 
         if message_type is None:
