@@ -252,59 +252,95 @@ def publish_and_wait(message):
         pass
     return data
 
+# class PatientDataView(APIView):
+#     def get(self, request):
+#         """Handle GET request for retrieving sensor data and storing it in the database."""
+#         user = request.user
+
+#         # Fetch patient data if it exists, else create a new instance
+#         patient_data, created = PatientData.objects.get_or_create(user=user)
+
+#         # Get temperature data via MQTT
+#         message = "Temperature"
+#         temperature_data = publish_and_wait(message)
+
+#         if created:
+#             # First time data creation
+#             patient_data.temperature = temperature_data
+#             patient_data.save()
+
+#         serializer = PatientDataSerializer(patient_data)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
 class PatientDataView(APIView):
     def get(self, request):
         """Handle GET request for retrieving sensor data and storing it in the database."""
-        user = request.user
+        # user = request.user
+        message_type = request.query_params.get('message', None)
+
+        if message_type is None:
+            return Response({"error": "Message type is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Fetch patient data if it exists, else create a new instance
         patient_data, created = PatientData.objects.get_or_create(user=user)
 
-        # Get temperature data via MQTT
-        message = "Temperature"
-        temperature_data = publish_and_wait(message)
+        # Get data from MQTT based on the message type
+        temperature_data = publish_and_wait(message_type)
 
-        if created:
-            # First time data creation
+        # First time data creation or update
+        if message_type == "TEMPERATURE":
             patient_data.temperature = temperature_data
-            patient_data.save()
+        else:
+            return Response({"error": "Invalid message type"}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = PatientDataSerializer(patient_data)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def post(self, request):
-        """Handle POST request to update patient sensor data."""
-        user = request.user
-        patient_data = get_object_or_404(PatientData, user=user)
-
-        # Get sensor data from MQTT server (for example, heart rate)
-        # message = "HeartRate"
-        # heart_rate_data = publish_and_wait(message)
-
-        # # Process heart rate data
-        # out = heart_rate_data.split(",")
-        # HR = out[1]
-        # SPO2 = out[0]
-
-        # patient_data.heart_rate = f"HR: {HR}, SPO2: {SPO2}"
-        # patient_data.save()
-        message = "Temperature"
-        temperature_data = publish_and_wait(message)
-
-        patient_data.temperature = temperature_data
         patient_data.save()
 
         serializer = PatientDataSerializer(patient_data)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def put(self, request):
-        """Handle PUT request to update an existing patient's data."""
+    def post(self, request):
+        """Handle POST request that sends the message type to retrieve sensor data."""
         user = request.user
-        patient_data = get_object_or_404(PatientData, user=user)
+        message_type = request.data.get("message", None)
 
-        serializer = PatientDataSerializer(patient_data, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        if message_type is None:
+            return Response({"error": "Message type is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Call the GET method to handle MQTT fetching and database updating
+        return self.get(request._request)
+
+    # def post(self, request):
+    #     """Handle POST request to update patient sensor data."""
+    #     user = request.user
+    #     patient_data = get_object_or_404(PatientData, user=user)
+
+    #     # Get sensor data from MQTT server (for example, heart rate)
+    #     # message = "HeartRate"
+    #     # heart_rate_data = publish_and_wait(message)
+
+    #     # # Process heart rate data
+    #     # out = heart_rate_data.split(",")
+    #     # HR = out[1]
+    #     # SPO2 = out[0]
+
+    #     # patient_data.heart_rate = f"HR: {HR}, SPO2: {SPO2}"
+    #     # patient_data.save()
+    #     message = "Temperature"
+    #     temperature_data = publish_and_wait(message)
+
+    #     patient_data.temperature = temperature_data
+    #     patient_data.save()
+
+    #     serializer = PatientDataSerializer(patient_data)
+    #     return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # def put(self, request):
+    #     """Handle PUT request to update an existing patient's data."""
+    #     user = request.user
+    #     patient_data = get_object_or_404(PatientData, user=user)
+
+    #     serializer = PatientDataSerializer(patient_data, data=request.data, partial=True)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
