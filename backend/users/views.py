@@ -271,12 +271,16 @@ def publish_and_wait(message):
 
 #         serializer = PatientDataSerializer(patient_data)
 #         return Response(serializer.data, status=status.HTTP_200_OK)
+from rest_framework.permissions import IsAuthenticated
+
 class PatientDataView(APIView):
-    def get(self, request):
+    permission_classes = [IsAuthenticated]  # Require the user to be authenticated
+
+    def get(self, request, message_type=None):
         """Handle GET request for retrieving sensor data and storing it in the database."""
         user = request.user
-        message_type = request.query_params.get('message', None)
 
+        # Ensure the message_type is provided
         if message_type is None:
             return Response({"error": "Message type is required"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -300,13 +304,20 @@ class PatientDataView(APIView):
     def post(self, request):
         """Handle POST request that sends the message type to retrieve sensor data."""
         user = request.user
+
+        # Ensure the user is authenticated
+        if not user.is_authenticated:
+            return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
+
         message_type = request.data.get("message", None)
 
+        # Ensure the message_type is provided
         if message_type is None:
             return Response({"error": "Message type is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Call the GET method to handle MQTT fetching and database updating
-        return self.get(request._request)
+        # Call the GET method directly with the message_type as an argument
+        return self.get(request, message_type=message_type)
+
 
     # def post(self, request):
     #     """Handle POST request to update patient sensor data."""
