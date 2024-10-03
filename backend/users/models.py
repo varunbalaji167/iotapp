@@ -7,8 +7,7 @@ from django.dispatch import receiver
 from django.core.files.storage import default_storage
 import random
 import string
-
-
+from datetime import datetime
 # Function to generate unique ID
 def generate_unique_id(prefix):
     """Generate a unique ID in the format: prefix + 5 random digits."""
@@ -117,3 +116,37 @@ def delete_user_profile(sender, instance, **kwargs):
             instance.doctorprofile.delete()
         except DoctorProfile.DoesNotExist:
             pass  # If profile doesn't exist, no action needed
+
+from django.db import models
+from .models import CustomUser
+
+# class PatientData(models.Model):
+#     user = models.OneToOneField(
+#         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, to_field="unique_id"
+#     )
+#     temperature = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+#     created_at = models.DateTimeField( )  # Set on creation
+#     # If you want to track updates, uncomment the following line:
+#     # updated_at = models.DateTimeField(auto_now=True)  
+#     heart_rate = models.CharField(max_length=100, null=True, blank=True)  # Can include multiple values like HR and SPO2
+#     weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+#     blood_pressure = models.CharField(max_length=100, null=True, blank=True)  # Format SYS, DIA, PULSE
+
+#     def __str__(self):
+#         return f"{self.user.username}'s Data"
+    
+class PatientData(models.Model):
+    patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE, related_name="vitals")
+    created_at = models.DateTimeField(auto_now_add=True)  # Timestamp for when the vital was recorded
+    heart_rate = models.PositiveIntegerField(null=True, blank=True) 
+    temperature = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True) 
+    respiratory_rate = models.PositiveIntegerField(null=True, blank=True) 
+    spo2 = models.PositiveIntegerField(null=True,blank=True)
+
+class DoctorData(models.Model):
+    doctor = models.ForeignKey(DoctorProfile, on_delete=models.CASCADE, related_name="vitals")
+    created_at = models.DateTimeField(auto_now_add=True)  # Timestamp for when the vital was recorded
+    heart_rate = models.PositiveIntegerField(null=True, blank=True) 
+    temperature = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True) 
+    respiratory_rate = models.PositiveIntegerField(null=True, blank=True) 
+    spo2 = models.PositiveIntegerField(null=True,blank=True)
