@@ -20,57 +20,156 @@ const PatientRecords = () => {
     );
   }
 
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     const token = JSON.parse(localStorage.getItem("token"));
+  //     if (!token) {
+  //       setError("Authentication token is missing.");
+  //       setLoading(false);
+  //       return;
+  //     }
+
+  //     const getTokenInfo = (token) => {
+  //       try {
+  //         return jwtDecode(token.access);
+  //       } catch {
+  //         setError("Invalid authentication token.");
+  //         return null;
+  //       }
+  //     };
+
+  //     const tokenInfo = getTokenInfo(token);
+  //     if (!tokenInfo) {
+  //       setError("Invalid authentication token.");
+  //       setLoading(false);
+  //       return;
+  //     }
+
+  //     const now = Date.now() / 1000;
+  //     if (tokenInfo.exp < now) {
+  //       setError("Authentication token has expired. Please log in again.");
+  //       setLoading(false);
+  //       return;
+  //     }
+
+  //     try {
+  //       const response = await axios.get(
+  //         "http://localhost:8000/api/users/patient-profiles/",
+  //         {
+  //           headers: {
+  //             Authorization: `Bearer ${token.access}`,
+  //           },
+  //         }
+  //       );
+
+  //       setData(response.data.length > 0 ? response.data : []);
+  //     } catch (err) {
+  //       setError(err.message);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchData();
+  // }, [userRole]);
+
   useEffect(() => {
-    const fetchData = async () => {
-      const token = JSON.parse(localStorage.getItem("token"));
-      if (!token) {
-        setError("Authentication token is missing.");
-        setLoading(false);
-        return;
-      }
-
-      const getTokenInfo = (token) => {
-        try {
-          return jwtDecode(token.access);
-        } catch {
-          setError("Invalid authentication token.");
-          return null;
-        }
-      };
-
-      const tokenInfo = getTokenInfo(token);
-      if (!tokenInfo) {
-        setError("Invalid authentication token.");
-        setLoading(false);
-        return;
-      }
-
-      const now = Date.now() / 1000;
-      if (tokenInfo.exp < now) {
-        setError("Authentication token has expired. Please log in again.");
-        setLoading(false);
-        return;
-      }
-
+    let refreshTimeout; // Store the timeout to clear it properly
+  
+    const fetchData = async (accessToken) => {
+      setLoading(true); // Start loading when fetching data
+  
       try {
         const response = await axios.get(
           "http://localhost:8000/api/users/patient-profiles/",
           {
             headers: {
-              Authorization: `Bearer ${token.access}`,
+              Authorization: `Bearer ${accessToken}`,
             },
           }
         );
-
+  
         setData(response.data.length > 0 ? response.data : []);
+        setLoading(false); // Stop loading after fetching
       } catch (err) {
         setError(err.message);
-      } finally {
+        setLoading(false); // Stop loading in case of error
+      }
+    };
+  
+    const scheduleTokenRefresh = (expiresIn) => {
+      const timeout = expiresIn - 60; // Refresh 1 minute before expiration
+      refreshTimeout = setTimeout(async () => {
+        await handleTokenRefresh(); // Call the refresh function
+      }, timeout * 1000);
+    };
+  
+    const handleTokenRefresh = async () => {
+      const token = JSON.parse(localStorage.getItem("token"));
+      const refreshToken = token?.refresh;
+  
+      if (!refreshToken) {
+        setError("Refresh token is missing.");
+        setLoading(false);
+        return;
+      }
+  
+      try {
+        const response = await axios.post("http://localhost:8000/api/users/refresh/", {
+          refresh: refreshToken,
+        });
+  
+        // Update tokens in localStorage
+        const newAccessToken = response.data.access;
+        localStorage.setItem("token", JSON.stringify({
+          access: newAccessToken,
+          refresh: refreshToken, // Keep the same refresh token
+        }));
+  
+        const tokenInfo = jwtDecode(newAccessToken);
+        const now = Date.now() / 1000;
+        const expiresIn = tokenInfo.exp - now;
+  
+        scheduleTokenRefresh(expiresIn); // Schedule the next refresh
+        fetchData(newAccessToken); // Fetch data with the new access token
+      } catch (error) {
+        setError("Failed to refresh token. Please log in again.");
         setLoading(false);
       }
     };
-
-    fetchData();
+  
+    const initTokenHandling = () => {
+      const token = JSON.parse(localStorage.getItem("token"));
+      const accessToken = token?.access;
+  
+      if (!accessToken) {
+        setError("Authentication token is missing.");
+        setLoading(false);
+        return;
+      }
+  
+      const tokenInfo = jwtDecode(accessToken);
+      const now = Date.now() / 1000;
+      const expiresIn = tokenInfo.exp - now;
+  
+      if (expiresIn > 60) {
+        // If the token is valid for more than 1 minute
+        scheduleTokenRefresh(expiresIn); // Schedule token refresh
+        fetchData(accessToken); // Fetch data with current access token
+      } else {
+        // Token about to expire, refresh immediately
+        handleTokenRefresh();
+      }
+    };
+  
+    // Initialize token handling on component mount
+    if (userRole === "doctor") {
+      initTokenHandling();
+    }
+  
+    // Clean up any scheduled timeouts on component unmount
+    return () => clearTimeout(refreshTimeout);
+  
   }, [userRole]);
 
   const columns = React.useMemo(

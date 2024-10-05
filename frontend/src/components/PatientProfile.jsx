@@ -1,4 +1,90 @@
-// src/components/PatientProfile.jsx
+// // src/components/PatientProfile.jsx
+// import React, { useState, useEffect, useRef } from "react";
+// import { useAuth } from "../contexts/AuthContext";
+// import Webcam from "react-webcam";
+// import axios from "axios";
+// import { jwtDecode } from "jwt-decode";
+// import { useNavigate } from "react-router-dom";
+// import Swal from "sweetalert2";
+
+// const PatientProfile = () => {
+//   const [profile, setProfile] = useState({
+//     name: "",
+//     dob: "",
+//     blood_group: "",
+//     height: "",
+//     weight: "",
+//     profile_picture: null,
+//   });
+  // const [newProfile, setNewProfile] = useState({});
+  // const [loading, setLoading] = useState(false);
+  // const [error, setError] = useState("");
+  // const [success, setSuccess] = useState("");
+  // const [isProfileCreated, setIsProfileCreated] = useState(false);
+  // const { userRole } = useAuth();
+  // const webcamRef = useRef(null);
+  // const [capturedImage, setCapturedImage] = useState(null);
+  // const navigate = useNavigate();
+
+//   useEffect(() => {
+//     const fetchProfile = async () => {
+//       const token = JSON.parse(localStorage.getItem("token"));
+//       if (!token) {
+//         setError("Authentication token is missing.");
+//         return;
+//       }
+
+//       const getTokenInfo = (token) => {
+//         try {
+//           return jwtDecode(token.access);
+//         } catch (error) {
+//           setError("Invalid authentication token.");
+//           return null;
+//         }
+//       };
+
+//       const tokenInfo = getTokenInfo(token);
+
+//       if (!tokenInfo) {
+//         setError("Invalid authentication token.");
+//         return;
+//       }
+
+//       const now = Date.now() / 1000;
+//       if (tokenInfo.exp < now) {
+//         setError("Authentication token has expired. Please log in again.");
+//         return;
+//       }
+
+//       try {
+//         const response = await axios.get(
+//           "http://127.0.0.1:8000/api/users/patientprofile/",
+//           {
+//             headers: {
+//               Authorization: "Bearer " + token.access,
+//             },
+//           }
+//         );
+//         setProfile(response.data);
+//         setIsProfileCreated(true);
+//       } catch (error) {
+//         if (error.response?.status === 404) {
+//           setIsProfileCreated(false);
+//         } else {
+//           setError(
+//             `Error fetching profile: ${
+//               error.response?.data?.detail || error.message
+//             }`
+//           );
+//         }
+//       }
+//     };
+
+//     if (userRole === "patient") {
+//       fetchProfile();
+//     }
+//   }, [userRole]);
+
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import Webcam from "react-webcam";
@@ -27,62 +113,101 @@ const PatientProfile = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      const token = JSON.parse(localStorage.getItem("token"));
-      if (!token) {
-        setError("Authentication token is missing.");
-        return;
-      }
-
-      const getTokenInfo = (token) => {
-        try {
-          return jwtDecode(token.access);
-        } catch (error) {
-          setError("Invalid authentication token.");
-          return null;
-        }
-      };
-
-      const tokenInfo = getTokenInfo(token);
-
-      if (!tokenInfo) {
-        setError("Invalid authentication token.");
-        return;
-      }
-
-      const now = Date.now() / 1000;
-      if (tokenInfo.exp < now) {
-        setError("Authentication token has expired. Please log in again.");
-        return;
-      }
-
+    const fetchProfile = async (accessToken) => {
       try {
         const response = await axios.get(
           "http://127.0.0.1:8000/api/users/patientprofile/",
           {
             headers: {
-              Authorization: "Bearer " + token.access,
+              Authorization: "Bearer " + accessToken,
             },
           }
         );
         setProfile(response.data);
         setIsProfileCreated(true);
       } catch (error) {
+        console.error("Error fetching profile:", error.response?.data); // Log the error response
         if (error.response?.status === 404) {
           setIsProfileCreated(false);
         } else {
           setError(
-            `Error fetching profile: ${
-              error.response?.data?.detail || error.message
-            }`
+            `Error fetching profile: ${error.response?.data?.detail || error.message}`
           );
         }
       }
     };
-
+  
+    const scheduleTokenRefresh = (expiresIn) => {
+      const timeout = expiresIn - 60; // Refresh 1 minute before token expires
+      setTimeout(async () => {
+        await handleTokenRefresh(); // Call the refresh function
+      }, timeout * 1000);
+    };
+  
+    const handleTokenRefresh = async () => {
+      const tokens = JSON.parse(localStorage.getItem("token"));
+      const refreshToken = tokens?.refresh;
+  
+      if (!refreshToken) {
+        setError("Refresh token is missing.");
+        return;
+      }
+  
+      try {
+        const response = await axios.post("http://127.0.0.1:8000/api/users/refresh/", {
+          refresh: refreshToken,
+        });
+  
+        // Update tokens in localStorage
+        localStorage.setItem("token", JSON.stringify({
+          access: response.data.access,
+          refresh: refreshToken, // Keep the same refresh token
+        }));
+  
+        const newAccessToken = response.data.access;
+        const tokenInfo = jwtDecode(newAccessToken);
+        const now = Date.now() / 1000;
+        const expiresIn = tokenInfo.exp - now;
+  
+        scheduleTokenRefresh(expiresIn); // Schedule the next refresh
+  
+        fetchProfile(newAccessToken); // Fetch profile with the new access token
+      } catch (error) {
+        console.error("Error refreshing token:", error.response?.data); // Log the error response
+        setError("Failed to refresh token. Please log in again.");
+      }
+    };
+  
+    const initTokenHandling = () => {
+      const tokens = JSON.parse(localStorage.getItem("token"));
+      let accessToken = tokens?.access;
+  
+      if (!accessToken) {
+        setError("Authentication tokens are missing.");
+        return;
+      }
+  
+      const tokenInfo = jwtDecode(accessToken);
+      const now = Date.now() / 1000;
+      const expiresIn = tokenInfo.exp - now;
+  
+      if (expiresIn > 60) {
+        // If the token is valid for more than 1 minute
+        scheduleTokenRefresh(expiresIn); // Schedule token refresh
+        fetchProfile(accessToken); // Fetch profile with current access token
+      } else {
+        // Token about to expire, refresh immediately
+        handleTokenRefresh();
+      }
+    };
+  
     if (userRole === "patient") {
-      fetchProfile();
+      initTokenHandling(); // Initialize token handling on component mount
     }
+  
+    // Clean up any scheduled timeouts on component unmount
+    return () => clearTimeout();
+  
   }, [userRole]);
 
   const captureImage = () => {
