@@ -295,91 +295,78 @@ class DeviceIdView(APIView):
             "publish_topic": client_publish_topic
         }, status=status.HTTP_200_OK)
     
-class VitalsDataView(APIView):
-    permission_classes = [IsAuthenticated]
+# class VitalsDataView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
-        """
-        Handle POST request to publish a message and wait for the response from the MQTT server.
-        """
-        user = request.user  # This is the CustomUser instance
-        role = user.role  # This fetches the user's role (doctor, patient, or admin)
+#     def post(self, request):
+#         """
+#         Handle POST request to publish a message and wait for the response from the MQTT server.
+#         """
+#         user = request.user  # This is the CustomUser instance
+#         role = user.role  # This fetches the user's role (doctor, patient, or admin)
 
-        print(f"User Role: {role}")  # For debugging
+#         print(f"User Role: {role}")  # For debugging
 
-        # Ensure the user is authenticated
-        if not user.is_authenticated:
-            return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
+#         # Ensure the user is authenticated
+#         if not user.is_authenticated:
+#             return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
 
-        # Get the message type and device ID from the POST request
-        message_type = request.data.get("message", None)
-        # device_id = request.data.get("device_id", None)
+#         # Get the message type and device ID from the POST request
+#         message_type = request.data.get("message", None)
+       
+#         client.publish(client_publish_topic, payload=message_type, qos=2)
 
-        # # Ensure the message_type and device_id are provided
-        # if message_type is None or device_id is None:
-        #     return Response({"error": "Message type and device ID are required"}, status=status.HTTP_400_BAD_REQUEST)
+#         global message_received,data
+#         message_received = False
+#         while not message_received:
+#             client.on_message = on_message
+#             pass
 
-        # Construct MQTT topics based on the device ID
-        # client_publish_topic = f"{client_publish_base_topic}{device_id}"
-        # client_subscribe_topic = f"{client_subscribe_base_topic}{device_id}"
+#         temperature_data = data  # The response data
 
-        # # Subscribe to the device-specific topic
-        # client.subscribe(client_subscribe_topic)
+#         # Debugging output
+#         print("Raw Temperature Data:", temperature_data)
 
-        # Publish the message using the device-specific topic
-        client.publish(client_publish_topic, payload=message_type, qos=2)
+#         try:
+#             # Check if temperature_data is a stringified JSON
+#             temperature_json = json.loads(temperature_data)
+#             temperature_value = temperature_json.get("Temperature")
 
-        global message_received,data
-        message_received = False
-        while not message_received:
-            client.on_message = on_message
-            pass
+#             # Ensure temperature value is present
+#             if temperature_value is not None:
+#                 if role == "doctor":
+#                     profile = DoctorProfile.objects.get(user=user)
 
-        temperature_data = data  # The response data
+#                     # Create and store the DoctorData instance associated with the profile
+#                     doctor_data = DoctorData(
+#                         doctor=profile, temperature=Decimal(temperature_value),
+#                         created_at=datetime.now()
+#                     )
+#                     doctor_data.save()
 
-        # Debugging output
-        print("Raw Temperature Data:", temperature_data)
+#                     # Serialize the doctor data
+#                     serializer = DoctorDataSerializer(doctor_data)
+#                     return Response(serializer.data, status=status.HTTP_200_OK)
 
-        try:
-            # Check if temperature_data is a stringified JSON
-            temperature_json = json.loads(temperature_data)
-            temperature_value = temperature_json.get("Temperature")
+#                 elif role == "patient":
+#                     profile = PatientProfile.objects.get(user=user)
 
-            # Ensure temperature value is present
-            if temperature_value is not None:
-                if role == "doctor":
-                    profile = DoctorProfile.objects.get(user=user)
+#                     # Create and store the PatientData instance associated with the profile
+#                     patient_data = PatientData(
+#                         patient=profile, temperature=Decimal(temperature_value),
+#                         created_at=datetime.now()
+#                     )
+#                     patient_data.save()
 
-                    # Create and store the DoctorData instance associated with the profile
-                    doctor_data = DoctorData(
-                        doctor=profile, temperature=Decimal(temperature_value),
-                        created_at=datetime.now()
-                    )
-                    doctor_data.save()
+#                     # Serialize the patient data
+#                     serializer = PatientDataSerializer(patient_data)
+#                     return Response(serializer.data, status=status.HTTP_200_OK)
 
-                    # Serialize the doctor data
-                    serializer = DoctorDataSerializer(doctor_data)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
+#                 else:
+#                     return Response({"error": "User role not recognized"}, status=status.HTTP_403_FORBIDDEN)
 
-                elif role == "patient":
-                    profile = PatientProfile.objects.get(user=user)
+#             else:
+#                 return Response({"error": "Temperature value not found"}, status=status.HTTP_400_BAD_REQUEST)
 
-                    # Create and store the PatientData instance associated with the profile
-                    patient_data = PatientData(
-                        patient=profile, temperature=Decimal(temperature_value),
-                        created_at=datetime.now()
-                    )
-                    patient_data.save()
-
-                    # Serialize the patient data
-                    serializer = PatientDataSerializer(patient_data)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-
-                else:
-                    return Response({"error": "User role not recognized"}, status=status.HTTP_403_FORBIDDEN)
-
-            else:
-                return Response({"error": "Temperature value not found"}, status=status.HTTP_400_BAD_REQUEST)
-
-        except json.JSONDecodeError:
-            return Response({"error": "Invalid temperature data format"}, status=status.HTTP_400_BAD_REQUEST)
+#         except json.JSONDecodeError:
+#             return Response({"error": "Invalid temperature data format"}, status=status.HTTP_400_BAD_REQUEST)
