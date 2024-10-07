@@ -4,18 +4,18 @@ import sys
 import threading
 from users.mqtt_client import setup_mqtt_client
 
-def run_mqtt_client():
-    """Run the MQTT client in a separate thread."""
-    client = setup_mqtt_client()
-    client.loop_forever()
+# def run_mqtt_client():
+#     """Run the MQTT client in a separate thread."""
+#     client = setup_mqtt_client()
+#     client.loop_forever()
 
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
 
-    # Run MQTT client in a separate thread
-    mqtt_thread = threading.Thread(target=run_mqtt_client, daemon=True)
-    mqtt_thread.start()
+    # # Run MQTT client in a separate thread
+    # mqtt_thread = threading.Thread(target=run_mqtt_client, daemon=True)
+    # mqtt_thread.start()
 
     try:
         from django.core.management import execute_from_command_line
