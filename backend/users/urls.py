@@ -7,9 +7,10 @@ from .views import (
     PatientProfileView,
     DoctorProfileView,
     PatientProfileListView,
+    DeviceIdView,
     # VitalsDataView,
-    DeviceIdView
-
+    DeviceListCreateAPIView,
+    DeviceRetrieveUpdateDestroyAPIView,
 )
 
 
@@ -26,4 +27,6 @@ urlpatterns = [
     ),
     path('device-id/', DeviceIdView.as_view(), name='vitals_data'),
     # path('vitals/', VitalsDataView.as_view(), name='vitals_data'),
+    path('devices/', DeviceListCreateAPIView.as_view(), name='devices-list-create'),
+    path('devices/<int:pk>/', DeviceRetrieveUpdateDestroyAPIView.as_view(), name='device-detail'),
 ]

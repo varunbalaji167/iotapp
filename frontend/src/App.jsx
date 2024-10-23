@@ -13,6 +13,7 @@ import PatientProfile from "./components/PatientProfile";
 import DoctorProfile from "./components/DoctorProfile";
 import Doctor from "./components/Doctor"; // Main Doctor component
 import Patient from "./components/Patient"; // Main Patient component
+import Admin from "./components/Admin";
 
 const App = () => {
   return (
@@ -28,6 +29,10 @@ const App = () => {
           <Route
             path="/patient"
             element={<PrivateRoute role="patient" Component={Patient} />}
+          />
+          <Route
+            path="/admin"
+            element={<PrivateRoute role="admin" Component={Admin} />}
           />
           <Route
             path="/patient-profile"
