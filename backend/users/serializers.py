@@ -88,15 +88,15 @@ class DoctorProfileSerializer(serializers.ModelSerializer):
         model = DoctorProfile
         fields = "__all__"
 
-class PatientDataSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PatientData
-        fields = ['patient', 'temperature','created_at']  
+# class PatientDataSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = PatientData
+#         fields = ['patient', 'temperature','created_at']  
 
-class DoctorDataSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DoctorData
-        fields = ['doctor', 'temperature','created_at']
+# class DoctorDataSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = DoctorData
+#         fields = ['doctor', 'temperature','created_at']
 
 class DeviceSerializer(serializers.ModelSerializer):
     class Meta:
