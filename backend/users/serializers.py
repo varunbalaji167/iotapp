@@ -3,7 +3,7 @@
 # serializers are used by Django REST Framework (DRF) to handle API requests and responses
 from django.contrib.auth import authenticate
 from rest_framework import serializers
-from .models import CustomUser,PatientProfile,DoctorProfile
+from .models import CustomUser,PatientProfile,DoctorProfile,Devices
 # from .models import PatientData,DoctorData
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -97,3 +97,8 @@ class DoctorProfileSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = DoctorData
 #         fields = ['doctor', 'temperature','created_at']
+
+class DeviceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Devices
+        fields = ['device_id', 'device_type', 'owner_name', 'owner_phone']        

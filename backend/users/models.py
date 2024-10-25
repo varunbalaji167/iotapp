@@ -158,3 +158,13 @@ class VitalHistoryDoctor(models.Model):
     spo2 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     recorded_at = models.DateTimeField(auto_now_add=True)
 
+
+class Devices(models.Model):
+    device_id = models.CharField(max_length=100, unique=True)
+    device_type = models.CharField(max_length=50)
+    owner_name = models.CharField(max_length=100)
+    owner_phone = models.CharField(max_length=15)
+
+    def __str__(self):
+        return f"{self.device_type} - {self.device_id} owned by {self.owner_name}"
+    
