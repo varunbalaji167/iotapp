@@ -7,13 +7,11 @@ from .views import (
     PatientProfileView,
     DoctorProfileView,
     PatientProfileListView,
-    # VitalsDataView,
-    # DeviceIdView
     DeviceListCreateAPIView,
     DeviceRetrieveUpdateDestroyAPIView,
-
+    DoctorDataView,
+    PatientDataView,
 )
-
 
 urlpatterns = [
     path("refresh/", TokenRefreshView.as_view(), name="token_refresh"),
@@ -26,8 +24,12 @@ urlpatterns = [
         PatientProfileListView.as_view(),
         name="patient-profiles-list",
     ),
-    # path('device-id/', DeviceIdView.as_view(), name='vitals_data'),
-    # path('vitals/', VitalsDataView.as_view(), name='vitals_data'),
-     path('devices/', DeviceListCreateAPIView.as_view(), name='devices-list-create'),
-    path('devices/<int:pk>/', DeviceRetrieveUpdateDestroyAPIView.as_view(), name='device-detail'),
+    path("devices/", DeviceListCreateAPIView.as_view(), name="devices-list-create"),
+    path(
+        "devices/<int:pk>/",
+        DeviceRetrieveUpdateDestroyAPIView.as_view(),
+        name="device-detail",
+    ),
+    path("doctorvitals/", DoctorDataView.as_view(), name="doctor-data"),
+    path("patientvitals/", PatientDataView.as_view(), name="patient-data"),
 ]

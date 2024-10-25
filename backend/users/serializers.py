@@ -4,7 +4,7 @@
 from django.contrib.auth import authenticate
 from rest_framework import serializers
 from .models import CustomUser,PatientProfile,DoctorProfile,Devices
-# from .models import PatientData,DoctorData
+from .models import DoctorData,PatientData
 
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -88,15 +88,15 @@ class DoctorProfileSerializer(serializers.ModelSerializer):
         model = DoctorProfile
         fields = "__all__"
 
-# class PatientDataSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = PatientData
-#         fields = ['patient', 'temperature','created_at']  
+class PatientDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PatientData
+        fields = ['temperature', 'glucose_level', 'glucose_samples', 'heart_rate', 'spo2', 'created_at']
 
-# class DoctorDataSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = DoctorData
-#         fields = ['doctor', 'temperature','created_at']
+class DoctorDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DoctorData
+        fields = ['temperature', 'glucose_level', 'glucose_samples', 'heart_rate', 'spo2', 'created_at']
 
 class DeviceSerializer(serializers.ModelSerializer):
     class Meta:

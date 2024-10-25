@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 const Admin = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +11,70 @@ const Admin = () => {
   });
 
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  // Schedule token refresh before expiration
+  const scheduleTokenRefresh = (expiresIn) => {
+    const timeout = expiresIn - 60; // Refresh 1 minute before expiration
+    setTimeout(async () => {
+      await handleTokenRefresh(); // Call the refresh function
+    }, timeout * 1000);
+  };
+
+  // Handle token refresh
+  const handleTokenRefresh = async () => {
+    const token = JSON.parse(localStorage.getItem("token"));
+    const refreshToken = token?.refresh;
+
+    if (!refreshToken) {
+      setError("Refresh token is missing.");
+      return;
+    }
+
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/api/users/refresh/", {
+        refresh: refreshToken,
+      });
+
+      // Update tokens in localStorage
+      localStorage.setItem("token", JSON.stringify({
+        access: response.data.access,
+        refresh: refreshToken, // Keep the same refresh token
+      }));
+
+      const newAccessToken = response.data.access;
+      const tokenInfo = jwtDecode(newAccessToken);
+      const now = Date.now() / 1000;
+      const expiresIn = tokenInfo.exp - now;
+
+      scheduleTokenRefresh(expiresIn); // Schedule the next refresh
+    } catch (error) {
+      setError("Failed to refresh token. Please log in again.");
+    }
+  };
+
+  // Initialize token handling
+  const initTokenHandling = () => {
+    const token = JSON.parse(localStorage.getItem("token"));
+    let accessToken = token?.access;
+
+    if (!accessToken) {
+      setError("Authentication token is missing.");
+      return;
+    }
+
+    const tokenInfo = jwtDecode(accessToken);
+    const now = Date.now() / 1000;
+    const expiresIn = tokenInfo.exp - now;
+
+    if (expiresIn > 60) {
+      // If the token is valid for more than 1 minute
+      scheduleTokenRefresh(expiresIn); // Schedule token refresh
+    } else {
+      // Token about to expire, refresh immediately
+      handleTokenRefresh();
+    }
+  };
 
   // Handle form input changes
   const handleChange = (e) => {
@@ -22,10 +87,23 @@ const Admin = () => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const token = JSON.parse(localStorage.getItem("token"));
+    const accessToken = token?.access;
+
+    if (!accessToken) {
+      setError("Authentication token is missing.");
+      return;
+    }
+
     try {
       const response = await axios.post(
         "http://127.0.0.1:8000/api/users/devices/",
-        formData
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`, // Include the token in the request headers
+          },
+        }
       );
       setMessage("Device registered successfully!");
       setFormData({
@@ -35,10 +113,19 @@ const Admin = () => {
         owner_phone: "",
       });
     } catch (error) {
-      console.error("Error registering device:", error); // This will log any error that occurs
-      setMessage("Failed to register the device. Please try again.");
+      console.error("Error registering device:", error);
+      if (error.response) {
+        setMessage(`Failed to register the device: ${error.response.data.error || 'Please try again.'}`);
+      } else {
+        setMessage("An error occurred. Please try again.");
+      }
     }
   };
+
+  // Effect to initialize token handling when the component mounts
+  useEffect(() => {
+    initTokenHandling();
+  }, []);
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
@@ -46,6 +133,10 @@ const Admin = () => {
         <h2 className="text-2xl font-bold mb-6 text-center">
           Device Registration
         </h2>
+
+        {error && (
+          <p className="text-center text-red-500 mb-4">{error}</p>
+        )}
 
         {message && (
           <p className="text-center text-green-500 mb-4">{message}</p>

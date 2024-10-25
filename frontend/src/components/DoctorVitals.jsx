@@ -1,150 +1,190 @@
-// import React, { useState } from "react";
-// import { useAuth } from "../contexts/AuthContext"; // Adjust this based on your auth context path
+// import React, { useState, useEffect } from "react";
+// import { useAuth } from "../contexts/AuthContext";
 // import axios from "axios";
-// import Swal from 'sweetalert2';
+// import { toast, ToastContainer } from "react-toastify";
+// import "react-toastify/dist/ReactToastify.css";
+// import { ClipLoader } from "react-spinners";
 
 // const DoctorVitals = () => {
-//   const { userRole } = useAuth(); // Get user role (doctor in this case)
-//   const [vitals, setVitals] = useState(null);
-//   const [deviceId, setDeviceId] = useState(""); // For device ID input
-//   const [deviceRegistered, setDeviceRegistered] = useState(false); // Check if device is registered
-//   const [error, setError] = useState("");
+//   const { userRole } = useAuth();
+//   const [vitals, setVitals] = useState({});
+//   const [deviceId, setDeviceId] = useState("");
+//   const [devices, setDevices] = useState([]);
+//   const [temperature, setTemperature] = useState(null);
+//   const [socket, setSocket] = useState(null);
+//   const [connected, setConnected] = useState(false);
 //   const [loading, setLoading] = useState(false);
-//   const [collectingVitals, setCollectingVitals] = useState(false);
 
-//   // Step 1: Send device_id to the server
-//   const handleRegisterDevice = async () => {
+//   // Fetch devices on component mount
+//   useEffect(() => {
+//     const fetchDevices = async () => {
+//       const token = JSON.parse(localStorage.getItem("token"));
+//       if (!token || !token.access) return;
+
+//       const headers = {
+//         Authorization: "Bearer " + token.access,
+//       };
+
+//       try {
+//         const response = await axios.get("http://127.0.0.1:8000/api/users/devices/", { headers });
+//         setDevices(response.data);
+//         toast.dismiss(); // Dismiss any existing success toast
+//         toast.success("Devices fetched successfully!");
+//       } catch (error) {
+//         toast.dismiss(); // Dismiss any existing error toast
+//         toast.error(`Error fetching devices: ${error.response?.data?.detail || error.message}`);
+//       }
+//     };
+
+//     fetchDevices();
+//   }, []);
+
+//   // Fetch temperature from API
+//   const fetchTemperature = async () => {
 //     const token = JSON.parse(localStorage.getItem("token"));
-//     if (!token) {
-//       setError("Authentication token is missing.");
-//       return;
-//     }
+//     if (!token || !token.access) return;
 
 //     const headers = {
 //       Authorization: "Bearer " + token.access,
 //     };
 
+//     setLoading(true); // Start loading
 //     try {
-//       setLoading(true);
-//       const response = await axios.post(
-//         "http://127.0.0.1:8000/api/users/device-id/",
-//         { device_id: deviceId },
-//         { headers }
-//       );
-//       setDeviceRegistered(true);
-//       Swal.fire({
-//         icon: 'success',
-//         title: 'Device Registered',
-//         text: `Device ID ${deviceId} registered successfully.`,
-//       });
+//       const response = await axios.get("http://127.0.0.1:8000/api/users/doctorvitals/", { headers });
+//       console.log("Temperature API response:", response.data);
+      
+//       if (Array.isArray(response.data) && response.data.length > 0) {
+//         const temperatureData = response.data[0];
+//         if (temperatureData.temperature !== undefined) {
+//           setTemperature(temperatureData.temperature);
+//           // Removed the toast notification for temperature
+//         } else {
+//           // Optional: handle case where temperature field is missing
+//           console.error("Temperature field is missing from the response.");
+//         }
+//       } else {
+//         // Optional: handle case where temperature data is missing
+//         console.error("Temperature data is missing or not in the expected format.");
+//       }
 //     } catch (error) {
-//       setError(`Error registering device: ${error.response?.data?.detail || error.message}`);
-//       Swal.fire({
-//         icon: 'error',
-//         title: 'Registration Failed',
-//         text: error.response?.data?.detail || error.message,
-//       });
-//       setDeviceRegistered(false);
+//       toast.dismiss(); // Dismiss any existing error toast
+//       toast.error(`Error fetching temperature: ${error.response?.data?.detail || error.message}`);
 //     } finally {
-//       setLoading(false);
+//       setLoading(false); // Stop loading
 //     }
 //   };
 
-//   // Step 2: Send "Temperature" message to collect vitals
-//   const handleCollectVitals = async () => {
-//     if (!deviceRegistered) {
-//       setError("Please register your device first.");
+//   // Function to connect to WebSocket
+//   const handleConnect = () => {
+//     if (!deviceId) {
+//       toast.dismiss(); // Dismiss any existing warning toast
+//       toast.warn("Please select a device.");
 //       return;
 //     }
 
 //     const token = JSON.parse(localStorage.getItem("token"));
-//     if (!token) {
-//       setError("Authentication token is missing.");
+//     if (!token || !token.access) {
+//       toast.dismiss(); // Dismiss any existing error toast
+//       toast.error("Authentication token is missing.");
 //       return;
 //     }
 
-//     const headers = {
-//       Authorization: "Bearer " + token.access,
+//     const newSocket = new WebSocket(`ws://127.0.0.1:8000/ws/vitals/?device_id=${deviceId}&token=${token.access}`);
+
+//     newSocket.onopen = () => {
+//       console.log("WebSocket connection established.");
+//       setConnected(true);
+//       toast.dismiss(); // Dismiss any existing success toast
+//       toast.success("Connected to WebSocket!");
 //     };
 
-//     try {
-//       setCollectingVitals(true);
-//       const response = await axios.post(
-//         "http://127.0.0.1:8000/api/users/vitals/",
-//         { message: "Temperature" }, // Sending the "Temperature" message
-//         { headers }
-//       );
-//       setVitals(response.data); // Update the vitals data after collection
-//       Swal.fire({
-//         icon: 'success',
-//         title: 'Vitals Collected',
-//         text: "Vitals collected successfully!",
-//       });
-//     } catch (error) {
-//       setError(`Error collecting vitals: ${error.response?.data?.detail || error.message}`);
-//       Swal.fire({
-//         icon: 'error',
-//         title: 'Collection Failed',
-//         text: error.response?.data?.detail || error.message,
-//       });
-//     } finally {
-//       setCollectingVitals(false);
+//     newSocket.onmessage = (event) => {
+//       const data = JSON.parse(event.data);
+//       console.log("Received WebSocket data:", data);
+      
+//       if (data.Status === 'Reading Complete') {
+//         fetchTemperature();
+//       }
+//     };
+
+//     newSocket.onclose = () => {
+//       console.log("WebSocket connection closed.");
+//       setConnected(false);
+//       setSocket(null);
+//       toast.dismiss(); // Dismiss any existing info toast
+//       toast.info("WebSocket connection closed.");
+//     };
+
+//     newSocket.onerror = (error) => {
+//       console.error("WebSocket error:", error);
+//       toast.dismiss(); // Dismiss any existing error toast
+//       toast.error("Error with WebSocket connection.");
+//       setConnected(false);
+//     };
+
+//     setSocket(newSocket);
+//   };
+
+//   // Function to request temperature vital
+//   const requestTemperature = () => {
+//     if (socket) {
+//       socket.send(JSON.stringify({ message: "Temperature" }));
+//       toast.dismiss(); // Dismiss any existing info toast
+//       toast.info("Requesting temperature...");
+//       setLoading(true); // Start loading
 //     }
 //   };
 
 //   return (
 //     <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md mt-10">
-//       <h1 className="text-2xl font-bold text-center">Doctor Vitals</h1>
+//       <h1 className="text-3xl font-bold text-center mb-6">Doctor Vitals</h1>
 
-//       {/* Step 1: Device ID Input */}
-//       {!deviceRegistered && (
-//         <div className="mt-6">
-//           <label htmlFor="deviceId" className="block text-sm font-medium text-gray-700">
-//             Enter your Device ID:
-//           </label>
-//           <input
-//             type="text"
-//             id="deviceId"
-//             value={deviceId}
-//             onChange={(e) => setDeviceId(e.target.value)}
-//             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
-//             placeholder="Device ID"
-//           />
-//           <button
-//             onClick={handleRegisterDevice}
-//             disabled={loading || !deviceId}
-//             className="mt-4 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 disabled:bg-gray-300"
-//           >
-//             {loading ? "Registering Device..." : "Register Device"}
-//           </button>
-//         </div>
-//       )}
+//       <div className="mt-6">
+//         <label htmlFor="deviceId" className="block text-sm font-medium text-gray-700 mb-2">
+//           Select your Device ID:
+//         </label>
+//         <select
+//           id="deviceId"
+//           value={deviceId}
+//           onChange={(e) => setDeviceId(e.target.value)}
+//           className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
+//           required
+//         >
+//           <option value="" disabled>Select Device ID</option>
+//           {devices.map((device) => (
+//             <option key={device.device_id} value={device.device_id}>
+//               {device.device_id} - {device.device_type} ({device.owner_name})
+//             </option>
+//           ))}
+//         </select>
+//         <button
+//           onClick={handleConnect}
+//           disabled={connected}
+//           className={`mt-4 py-2 px-4 rounded-md ${connected ? 'bg-green-500' : 'bg-blue-500'} text-white hover:bg-opacity-80 transition duration-300`}
+//         >
+//           {connected ? "Connected" : "Connect"}
+//         </button>
+//       </div>
 
-//       {/* Step 2: Collect Vitals */}
-//       {deviceRegistered && (
-//         <div className="mt-6">
-//           <button
-//             onClick={handleCollectVitals}
-//             disabled={collectingVitals}
-//             className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 disabled:bg-gray-300"
-//           >
-//             {collectingVitals ? "Collecting Vitals..." : "Collect Vitals"}
-//           </button>
-//         </div>
-//       )}
+//       <div className="mt-6">
+//         <h2 className="text-lg font-semibold">Collect Vitals:</h2>
+//         <button
+//           onClick={requestTemperature}
+//           disabled={!connected || loading}
+//           className={`mt-2 py-2 px-4 rounded-md ${!connected || loading ? 'bg-gray-300' : 'bg-blue-500'} text-white hover:bg-opacity-80 transition duration-300`}
+//         >
+//           {loading ? "Collecting..." : "Request Temperature"}
+//         </button>
+//         {loading && (
+//           <div className="flex justify-center mt-2">
+//             <ClipLoader color="#1D4ED8" loading={loading} size={30} />
+//           </div>
+//         )}
+//       </div>
 
-//       {/* Display vitals if collected */}
-//       {vitals && (
-//         <div className="mt-6 p-4 border rounded-md bg-gray-100">
-//           <h2 className="text-lg font-semibold">Collected Vitals:</h2>
-//           <p>Temperature: {vitals.temperature} °C</p>
-//           <p>Heart Rate: {vitals.heart_rate} bpm</p>
-//           <p>SPO2: {vitals.spo2}</p>
-//           {/* Add other vitals if available */}
-//         </div>
-//       )}
-
-//       {error && <p className="text-red-500 mt-4">{error}</p>}
+//       {temperature !== null && <p className="mt-4 text-xl font-bold">Temperature: {temperature} °C</p>}
+      
+//       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
 //     </div>
 //   );
 // };
@@ -152,25 +192,52 @@
 // export default DoctorVitals;
 
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../contexts/AuthContext"; // Adjust this based on your auth context path
+import { useAuth } from "../contexts/AuthContext";
 import axios from "axios";
-import Swal from 'sweetalert2';
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { ClipLoader } from "react-spinners";
 
 const DoctorVitals = () => {
-  const { userRole } = useAuth(); // Get user role (doctor in this case)
-  const [vitals, setVitals] = useState(null);
-  const [deviceId, setDeviceId] = useState(""); // For selected device ID
-  const [deviceRegistered, setDeviceRegistered] = useState(false); // Check if device is registered
-  const [devices, setDevices] = useState([]); // For the list of devices
-  const [error, setError] = useState("");
+  const { userRole } = useAuth();
+  const [profileExists, setProfileExists] = useState(false); // State to track profile existence
+  const [deviceId, setDeviceId] = useState("");
+  const [devices, setDevices] = useState([]);
+  const [temperature, setTemperature] = useState(null);
+  const [socket, setSocket] = useState(null);
+  const [connected, setConnected] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [collectingVitals, setCollectingVitals] = useState(false);
 
-  // Fetch devices on component mount
+  // Check if the doctor profile exists on component mount
+  useEffect(() => {
+    const checkProfileExists = async () => {
+      const token = JSON.parse(localStorage.getItem("token"));
+      if (!token || !token.access) return;
+
+      const headers = {
+        Authorization: "Bearer " + token.access,
+      };
+
+      try {
+        const response = await axios.get("http://127.0.0.1:8000/api/users/doctorprofile/", { headers });
+        setProfileExists(true); // Profile exists
+      } catch (error) {
+        if (error.response && error.response.status === 404) {
+          setProfileExists(false); // Profile does not exist
+        } else {
+          toast.error(`Error checking profile: ${error.response?.data?.detail || error.message}`);
+        }
+      }
+    };
+
+    checkProfileExists();
+  }, []); // Add userRole to the dependency array if necessary
+
+  // Fetch devices only if the profile exists
   useEffect(() => {
     const fetchDevices = async () => {
       const token = JSON.parse(localStorage.getItem("token"));
-      if (!token || !token.access) return; // Exit if token is missing
+      if (!token || !token.access) return;
 
       const headers = {
         Authorization: "Bearer " + token.access,
@@ -178,155 +245,173 @@ const DoctorVitals = () => {
 
       try {
         const response = await axios.get("http://127.0.0.1:8000/api/users/devices/", { headers });
-        console.log("Fetched devices:", response.data); // Debug log to see the fetched devices
-        setDevices(response.data); // Set the devices fetched from the API
+        setDevices(response.data);
+        toast.dismiss(); // Dismiss any existing success toast
+        toast.success("Devices fetched successfully!");
       } catch (error) {
-        setError(`Error fetching devices: ${error.response?.data?.detail || error.message}`);
+        toast.dismiss(); // Dismiss any existing error toast
+        toast.error(`Error fetching devices: ${error.response?.data?.detail || error.message}`);
       }
     };
 
-    fetchDevices();
-  }, []);
-
-  // Register device function
-  const handleRegisterDevice = async () => {
-    const token = JSON.parse(localStorage.getItem("token"));
-    if (!token || !token.access) {
-      setError("Authentication token is missing.");
-      return;
+    if (profileExists) {
+      fetchDevices();
     }
+  }, [profileExists]); // Fetch devices only if the profile exists
+
+  // Fetch temperature from API
+  const fetchTemperature = async () => {
+    const token = JSON.parse(localStorage.getItem("token"));
+    if (!token || !token.access) return;
 
     const headers = {
       Authorization: "Bearer " + token.access,
     };
 
+    setLoading(true); // Start loading
     try {
-      setLoading(true);
-      const response = await axios.post(
-        "http://127.0.0.1:8000/api/users/device-id/",
-        { device_id: deviceId },
-        { headers }
-      );
-      setDeviceRegistered(true);
-      Swal.fire({
-        icon: 'success',
-        title: 'Device Registered',
-        text: `Device ID ${deviceId} registered successfully.`,
-      });
+      const response = await axios.get("http://127.0.0.1:8000/api/users/doctorvitals/", { headers });
+      console.log("Temperature API response:", response.data);
+      
+      if (Array.isArray(response.data) && response.data.length > 0) {
+        const temperatureData = response.data[0];
+        if (temperatureData.temperature !== undefined) {
+          setTemperature(temperatureData.temperature);
+        } else {
+          console.error("Temperature field is missing from the response.");
+        }
+      } else {
+        console.error("Temperature data is missing or not in the expected format.");
+      }
     } catch (error) {
-      setError(`Error registering device: ${error.response?.data?.detail || error.message}`);
-      Swal.fire({
-        icon: 'error',
-        title: 'Registration Failed',
-        text: error.response?.data?.detail || error.message,
-      });
-      setDeviceRegistered(false);
+      toast.dismiss(); // Dismiss any existing error toast
+      toast.error(`Error fetching temperature: ${error.response?.data?.detail || error.message}`);
     } finally {
-      setLoading(false);
+      setLoading(false); // Stop loading
     }
   };
 
-  // Collect vitals function
-  const handleCollectVitals = async () => {
-    if (!deviceRegistered) {
-      setError("Please register your device first.");
+  // Function to connect to WebSocket
+  const handleConnect = () => {
+    if (!deviceId) {
+      toast.dismiss(); // Dismiss any existing warning toast
+      toast.warn("Please select a device.");
       return;
     }
 
     const token = JSON.parse(localStorage.getItem("token"));
     if (!token || !token.access) {
-      setError("Authentication token is missing.");
+      toast.dismiss(); // Dismiss any existing error toast
+      toast.error("Authentication token is missing.");
       return;
     }
 
-    const headers = {
-      Authorization: "Bearer " + token.access,
+    const newSocket = new WebSocket(`ws://127.0.0.1:8000/ws/vitals/?device_id=${deviceId}&token=${token.access}`);
+
+    newSocket.onopen = () => {
+      console.log("WebSocket connection established.");
+      setConnected(true);
+      toast.dismiss(); // Dismiss any existing success toast
+      toast.success("Connected to WebSocket!");
     };
 
-    try {
-      setCollectingVitals(true);
-      const response = await axios.post(
-        "http://127.0.0.1:8000/api/users/vitals/",
-        { message: "Temperature" }, // Sending the "Temperature" message
-        { headers }
-      );
-      setVitals(response.data); // Update the vitals data after collection
-      Swal.fire({
-        icon: 'success',
-        title: 'Vitals Collected',
-        text: "Vitals collected successfully!",
-      });
-    } catch (error) {
-      setError(`Error collecting vitals: ${error.response?.data?.detail || error.message}`);
-      Swal.fire({
-        icon: 'error',
-        title: 'Collection Failed',
-        text: error.response?.data?.detail || error.message,
-      });
-    } finally {
-      setCollectingVitals(false);
+    newSocket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log("Received WebSocket data:", data);
+      
+      if (data.Status === 'Reading Complete') {
+        fetchTemperature();
+      }
+    };
+
+    newSocket.onclose = () => {
+      console.log("WebSocket connection closed.");
+      setConnected(false);
+      setSocket(null);
+      toast.dismiss(); // Dismiss any existing info toast
+      toast.info("WebSocket connection closed.");
+    };
+
+    newSocket.onerror = (error) => {
+      console.error("WebSocket error:", error);
+      toast.dismiss(); // Dismiss any existing error toast
+      toast.error("Error with WebSocket connection.");
+      setConnected(false);
+    };
+
+    setSocket(newSocket);
+  };
+
+  // Function to request temperature vital
+  const requestTemperature = () => {
+    if (socket) {
+      socket.send(JSON.stringify({ message: "Temperature" }));
+      toast.dismiss(); // Dismiss any existing info toast
+      toast.info("Requesting temperature...");
+      setLoading(true); // Start loading
     }
   };
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md mt-10">
-      <h1 className="text-2xl font-bold text-center">Doctor Vitals</h1>
-
-      {/* Dropdown for Device ID Selection */}
-      {!deviceRegistered && (
-        <div className="mt-6">
-          <label htmlFor="deviceId" className="block text-sm font-medium text-gray-700">
-            Select your Device ID:
-          </label>
-          <select
-            id="deviceId"
-            value={deviceId}
-            onChange={(e) => setDeviceId(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
-            required
-          >
-            <option value="" disabled>Select Device ID</option>
-            {devices.map((device) => (
-              <option key={device.device_id} value={device.device_id}>
-                {device.device_id} - {device.device_type} ({device.owner_name})
-              </option>
-            ))}
-          </select>
-          <button
-            onClick={handleRegisterDevice}
-            disabled={loading || !deviceId}
-            className="mt-4 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 disabled:bg-gray-300"
-          >
-            {loading ? "Registering Device..." : "Register Device"}
-          </button>
+      <h1 className="text-3xl font-bold text-center mb-6">Doctor Vitals</h1>
+      
+      {!profileExists && (
+        <div className="mb-4 p-4 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded">
+          <p>Please create your profile to access the vitals functionality.</p>
         </div>
       )}
 
-      {/* Step 2: Collect Vitals */}
-      {deviceRegistered && (
-        <div className="mt-6">
-          <button
-            onClick={handleCollectVitals}
-            disabled={collectingVitals}
-            className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 disabled:bg-gray-300"
-          >
-            {collectingVitals ? "Collecting Vitals..." : "Collect Vitals"}
-          </button>
-        </div>
-      )}
+      {profileExists && (
+        <>
+          <div className="mt-6">
+            <label htmlFor="deviceId" className="block text-sm font-medium text-gray-700 mb-2">
+              Select your Device ID:
+            </label>
+            <select
+              id="deviceId"
+              value={deviceId}
+              onChange={(e) => setDeviceId(e.target.value)}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
+              required
+            >
+              <option value="" disabled>Select Device ID</option>
+              {devices.map((device) => (
+                <option key={device.device_id} value={device.device_id}>
+                  {device.device_id} - {device.device_type} ({device.owner_name})
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={handleConnect}
+              disabled={connected}
+              className={`mt-4 py-2 px-4 rounded-md ${connected ? 'bg-green-500' : 'bg-blue-500'} text-white hover:bg-opacity-80 transition duration-300`}
+            >
+              {connected ? "Connected" : "Connect"}
+            </button>
+          </div>
 
-      {/* Display vitals if collected */}
-      {vitals && (
-        <div className="mt-6 p-4 border rounded-md bg-gray-100">
-          <h2 className="text-lg font-semibold">Collected Vitals:</h2>
-          <p>Temperature: {vitals.temperature} °C</p>
-          <p>Heart Rate: {vitals.heart_rate} bpm</p>
-          <p>SPO2: {vitals.spo2}</p>
-          {/* Add other vitals if available */}
-        </div>
-      )}
+          <div className="mt-6">
+            <h2 className="text-lg font-semibold">Collect Vitals:</h2>
+            <button
+              onClick={requestTemperature}
+              disabled={!connected || loading}
+              className={`mt-2 py-2 px-4 rounded-md ${!connected || loading ? 'bg-gray-300' : 'bg-blue-500'} text-white hover:bg-opacity-80 transition duration-300`}
+            >
+              {loading ? "Collecting..." : "Request Temperature"}
+            </button>
+            {loading && (
+              <div className="flex justify-center mt-2">
+                <ClipLoader color="#1D4ED8" loading={loading} size={30} />
+              </div>
+            )}
+          </div>
 
-      {error && <p className="text-red-500 mt-4">{error}</p>}
+          {temperature !== null && <p className="mt-4 text-xl font-bold">Temperature: {temperature} °C</p>}
+        </>
+      )}
+      
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
     </div>
   );
 };
