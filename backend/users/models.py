@@ -117,50 +117,7 @@ def delete_user_profile(sender, instance, **kwargs):
         except DoctorProfile.DoesNotExist:
             pass  # If profile doesn't exist, no action needed
 
-from django.db import models
-from .models import CustomUser
 
-# class PatientData(models.Model):
-#     user = models.OneToOneField(
-#         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, to_field="unique_id"
-#     )
-#     temperature = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-#     created_at = models.DateTimeField( )  # Set on creation
-#     # If you want to track updates, uncomment the following line:
-#     # updated_at = models.DateTimeField(auto_now=True)  
-#     heart_rate = models.CharField(max_length=100, null=True, blank=True)  # Can include multiple values like HR and SPO2
-#     weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-#     blood_pressure = models.CharField(max_length=100, null=True, blank=True)  # Format SYS, DIA, PULSE
-
-#     def __str__(self):
-#         return f"{self.user.username}'s Data"
-    
-# class PatientData(models.Model):
-#     patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE, related_name="vitals")
-#     created_at = models.DateTimeField(auto_now_add=True)  # Timestamp for when the vital was recorded
-#     heart_rate = models.PositiveIntegerField(null=True, blank=True) 
-#     temperature = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True) 
-#     respiratory_rate = models.PositiveIntegerField(null=True, blank=True) 
-#     spo2 = models.PositiveIntegerField(null=True,blank=True)
-
-# class DoctorData(models.Model):
-#     doctor = models.ForeignKey(DoctorProfile, on_delete=models.CASCADE, related_name="vitals")
-#     created_at = models.DateTimeField(auto_now_add=True)  # Timestamp for when the vital was recorded
-#     heart_rate = models.PositiveIntegerField(null=True, blank=True) 
-#     temperature = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True) 
-#     respiratory_rate = models.PositiveIntegerField(null=True, blank=True) 
-#     spo2 = models.PositiveIntegerField(null=True,blank=True)
-
-class Devices(models.Model):
-    device_id = models.CharField(max_length=100, unique=True)
-    device_type = models.CharField(max_length=50)
-    owner_name = models.CharField(max_length=100)
-    owner_phone = models.CharField(max_length=15)
-
-    def __str__(self):
-        return f"{self.device_type} - {self.device_id} owned by {self.owner_name}"
-    
-####
 class DoctorData(models.Model):
     doctor = models.ForeignKey(DoctorProfile, on_delete=models.CASCADE, related_name="vitals")
     temperature = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
@@ -180,3 +137,24 @@ class PatientData(models.Model):
     heart_rate = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     spo2 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+class VitalHistoryPatient(models.Model):
+    patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE, related_name="vital_history")
+    temperature = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    glucose_level = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    glucose_samples = models.JSONField(null=True, blank=True)
+    oxygen_level = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    heart_rate = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    spo2 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    recorded_at = models.DateTimeField(auto_now_add=True)
+
+class VitalHistoryDoctor(models.Model):
+    doctor = models.ForeignKey(DoctorProfile, on_delete=models.CASCADE, related_name="vital_history")
+    temperature = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    glucose_level = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    glucose_samples = models.JSONField(null=True, blank=True)
+    oxygen_level = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    heart_rate = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    spo2 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    recorded_at = models.DateTimeField(auto_now_add=True)
+
