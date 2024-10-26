@@ -138,7 +138,7 @@ def on_message(client, userdata, msg):
                 # If "Result" is "Success", send both "Status" and "Temperature" (or relevant fields for other subjects)
                 elif result == "Success":
                     spo2 = data.get("SPO2")
-                    heartrate = data.get("Heart_Rate")
+                    heart_rate = data.get("Heart_Rate")
                     # Check if temperature exists for subjects like Temperature, otherwise send Status only
                    
                     async_to_sync(channel_layer.group_send)(
@@ -148,7 +148,7 @@ def on_message(client, userdata, msg):
                                 "message": json.dumps({
                                     "Status": status,
                                     "SPO2": spo2,
-                                    "Heart_Rate": heartrate
+                                    "Heart_Rate": heart_rate
                                 })
                             }
                         )

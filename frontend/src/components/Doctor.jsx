@@ -7,7 +7,6 @@ const Patient = () => {
   return (
     <div>
       <Navbar />
-      <h1>Doctor Dashboard</h1>
       <DoctorVitals/>
       <PatientRecords/>
     </div>

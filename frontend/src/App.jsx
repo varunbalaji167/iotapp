@@ -1,11 +1,5 @@
-// App.jsx
-import React, { useEffect } from "react";
-import {
-  BrowserRouter as Router,
-  Route,
-  Routes,
-  Navigate,
-} from "react-router-dom";
+import React from "react";
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Login from "./components/Login";
 import Register from "./components/Register";
@@ -14,6 +8,8 @@ import DoctorProfile from "./components/DoctorProfile";
 import Doctor from "./components/Doctor"; // Main Doctor component
 import Patient from "./components/Patient"; // Main Patient component
 import Admin from "./components/Admin";
+import { ToastContainer } from "react-toastify"; // Import ToastContainer
+import "react-toastify/dist/ReactToastify.css"; // Import styles
 
 const App = () => {
   return (
@@ -44,6 +40,8 @@ const App = () => {
           />
           <Route path="/" element={<Navigate to="/login" />} />
         </Routes>
+        
+        <ToastContainer position="top-right" autoClose={3000} /> {/* Move ToastContainer here */}
       </AuthProvider>
     </Router>
   );
@@ -52,8 +50,6 @@ const App = () => {
 // Private Route Component
 const PrivateRoute = ({ role, Component }) => {
   const { userRole } = useAuth();
-
-  // If the user is authenticated and has the correct role, render the component
   return userRole === role ? <Component /> : <Navigate to="/login" />;
 };
 
