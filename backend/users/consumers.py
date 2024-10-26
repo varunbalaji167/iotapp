@@ -10,7 +10,7 @@ from rest_framework_simplejwt.tokens import UntypedToken
 from rest_framework_simplejwt.exceptions import InvalidToken
 from django.contrib.auth import get_user_model
 subject_group_mapping = {
-    "Hardware Configuration": "hardware_group_",
+    "Hardware Configuration Success": "hardware_group_",
     "Glucose": "glucose_group_",
     "Temperature": "temperature_group_",
     "Oximeter": "oximeter_group_"
@@ -81,7 +81,7 @@ class VitalDataConsumer(AsyncWebsocketConsumer):
         """Handle WebSocket messages for subscribing/publishing topics."""
         text_data_json = json.loads(text_data)
         message_type = text_data_json.get("message")
-     
+    
         if message_type:
             
             # Publish the data to the dynamic MQTT topic based on device_id
@@ -128,7 +128,7 @@ class VitalDataConsumer(AsyncWebsocketConsumer):
 
         # if status and temperature:
         await self.send(text_data=json.dumps({'Status': status}))
-       
+    
     
     async def glucose_message(self, event):
         """Handle temperature messages received in the temperature group."""

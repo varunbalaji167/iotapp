@@ -17,7 +17,7 @@ channel_layer = get_channel_layer()
 
 # Mapping subjects to their respective WebSocket group types
 subject_group_mapping = {
-    "Hardware Configuration": "hardware_group_",
+    "Hardware Configuration Success": "hardware_group_",
     "Glucose": "glucose_group_",
     "Temperature": "temperature_group_",
     "Oximeter": "oximeter_group_"
@@ -41,7 +41,7 @@ def on_message(client, userdata, msg):
                 print(f"Unrecognized subject: {subject}")
                 return
             
-            if subject == "Hardware Configuration":
+            if subject == "Hardware Configuration Success":
                 status = data.get("Status")
                 async_to_sync(channel_layer.group_send)(
                     group_name,
@@ -108,6 +108,18 @@ def on_message(client, userdata, msg):
                             })
                         }
                     )
+
+                elif result == "Failed":
+                    async_to_sync(channel_layer.group_send)(
+                        group_name,
+                        {
+                            "type": "temperature_message",
+                            "message": json.dumps({
+                                "Status": status
+                            })
+                        }
+                    )
+
             elif subject == "Oximeter":
                 result = data.get("Result")
                 status = data.get("Status") 
@@ -150,6 +162,17 @@ def on_message(client, userdata, msg):
                             })
                         }
                     )
+
+                elif result == "Failed":
+                    async_to_sync(channel_layer.group_send)(
+                        group_name,
+                        {
+                            "type": "oximeter_message",
+                            "message": json.dumps({
+                                "Status": status
+                            })
+                        }
+                    )    
                    
                     
     except (json.JSONDecodeError, KeyError) as e:

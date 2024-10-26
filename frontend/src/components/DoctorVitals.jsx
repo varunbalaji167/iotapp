@@ -1,278 +1,97 @@
-// import React, { useState, useEffect } from "react";
-// import { useAuth } from "../contexts/AuthContext";
-// import axios from "axios";
-// import { toast, ToastContainer } from "react-toastify";
-// import "react-toastify/dist/ReactToastify.css";
-// import { ClipLoader } from "react-spinners";
-
-// const DoctorVitals = () => {
-//   const { userRole } = useAuth();
-//   const [vitals, setVitals] = useState({});
-//   const [deviceId, setDeviceId] = useState("");
-//   const [devices, setDevices] = useState([]);
-//   const [temperature, setTemperature] = useState(null);
-//   const [socket, setSocket] = useState(null);
-//   const [connected, setConnected] = useState(false);
-//   const [loading, setLoading] = useState(false);
-
-//   // Fetch devices on component mount
-//   useEffect(() => {
-//     const fetchDevices = async () => {
-//       const token = JSON.parse(localStorage.getItem("token"));
-//       if (!token || !token.access) return;
-
-//       const headers = {
-//         Authorization: "Bearer " + token.access,
-//       };
-
-//       try {
-//         const response = await axios.get("http://127.0.0.1:8000/api/users/devices/", { headers });
-//         setDevices(response.data);
-//         toast.dismiss(); // Dismiss any existing success toast
-//         toast.success("Devices fetched successfully!");
-//       } catch (error) {
-//         toast.dismiss(); // Dismiss any existing error toast
-//         toast.error(`Error fetching devices: ${error.response?.data?.detail || error.message}`);
-//       }
-//     };
-
-//     fetchDevices();
-//   }, []);
-
-//   // Fetch temperature from API
-//   const fetchTemperature = async () => {
-//     const token = JSON.parse(localStorage.getItem("token"));
-//     if (!token || !token.access) return;
-
-//     const headers = {
-//       Authorization: "Bearer " + token.access,
-//     };
-
-//     setLoading(true); // Start loading
-//     try {
-//       const response = await axios.get("http://127.0.0.1:8000/api/users/doctorvitals/", { headers });
-//       console.log("Temperature API response:", response.data);
-      
-//       if (Array.isArray(response.data) && response.data.length > 0) {
-//         const temperatureData = response.data[0];
-//         if (temperatureData.temperature !== undefined) {
-//           setTemperature(temperatureData.temperature);
-//           // Removed the toast notification for temperature
-//         } else {
-//           // Optional: handle case where temperature field is missing
-//           console.error("Temperature field is missing from the response.");
-//         }
-//       } else {
-//         // Optional: handle case where temperature data is missing
-//         console.error("Temperature data is missing or not in the expected format.");
-//       }
-//     } catch (error) {
-//       toast.dismiss(); // Dismiss any existing error toast
-//       toast.error(`Error fetching temperature: ${error.response?.data?.detail || error.message}`);
-//     } finally {
-//       setLoading(false); // Stop loading
-//     }
-//   };
-
-//   // Function to connect to WebSocket
-//   const handleConnect = () => {
-//     if (!deviceId) {
-//       toast.dismiss(); // Dismiss any existing warning toast
-//       toast.warn("Please select a device.");
-//       return;
-//     }
-
-//     const token = JSON.parse(localStorage.getItem("token"));
-//     if (!token || !token.access) {
-//       toast.dismiss(); // Dismiss any existing error toast
-//       toast.error("Authentication token is missing.");
-//       return;
-//     }
-
-//     const newSocket = new WebSocket(`ws://127.0.0.1:8000/ws/vitals/?device_id=${deviceId}&token=${token.access}`);
-
-//     newSocket.onopen = () => {
-//       console.log("WebSocket connection established.");
-//       setConnected(true);
-//       toast.dismiss(); // Dismiss any existing success toast
-//       toast.success("Connected to WebSocket!");
-//     };
-
-//     newSocket.onmessage = (event) => {
-//       const data = JSON.parse(event.data);
-//       console.log("Received WebSocket data:", data);
-      
-//       if (data.Status === 'Reading Complete') {
-//         fetchTemperature();
-//       }
-//     };
-
-//     newSocket.onclose = () => {
-//       console.log("WebSocket connection closed.");
-//       setConnected(false);
-//       setSocket(null);
-//       toast.dismiss(); // Dismiss any existing info toast
-//       toast.info("WebSocket connection closed.");
-//     };
-
-//     newSocket.onerror = (error) => {
-//       console.error("WebSocket error:", error);
-//       toast.dismiss(); // Dismiss any existing error toast
-//       toast.error("Error with WebSocket connection.");
-//       setConnected(false);
-//     };
-
-//     setSocket(newSocket);
-//   };
-
-//   // Function to request temperature vital
-//   const requestTemperature = () => {
-//     if (socket) {
-//       socket.send(JSON.stringify({ message: "Temperature" }));
-//       toast.dismiss(); // Dismiss any existing info toast
-//       toast.info("Requesting temperature...");
-//       setLoading(true); // Start loading
-//     }
-//   };
-
-//   return (
-//     <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md mt-10">
-//       <h1 className="text-3xl font-bold text-center mb-6">Doctor Vitals</h1>
-
-//       <div className="mt-6">
-//         <label htmlFor="deviceId" className="block text-sm font-medium text-gray-700 mb-2">
-//           Select your Device ID:
-//         </label>
-//         <select
-//           id="deviceId"
-//           value={deviceId}
-//           onChange={(e) => setDeviceId(e.target.value)}
-//           className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
-//           required
-//         >
-//           <option value="" disabled>Select Device ID</option>
-//           {devices.map((device) => (
-//             <option key={device.device_id} value={device.device_id}>
-//               {device.device_id} - {device.device_type} ({device.owner_name})
-//             </option>
-//           ))}
-//         </select>
-//         <button
-//           onClick={handleConnect}
-//           disabled={connected}
-//           className={`mt-4 py-2 px-4 rounded-md ${connected ? 'bg-green-500' : 'bg-blue-500'} text-white hover:bg-opacity-80 transition duration-300`}
-//         >
-//           {connected ? "Connected" : "Connect"}
-//         </button>
-//       </div>
-
-//       <div className="mt-6">
-//         <h2 className="text-lg font-semibold">Collect Vitals:</h2>
-//         <button
-//           onClick={requestTemperature}
-//           disabled={!connected || loading}
-//           className={`mt-2 py-2 px-4 rounded-md ${!connected || loading ? 'bg-gray-300' : 'bg-blue-500'} text-white hover:bg-opacity-80 transition duration-300`}
-//         >
-//           {loading ? "Collecting..." : "Request Temperature"}
-//         </button>
-//         {loading && (
-//           <div className="flex justify-center mt-2">
-//             <ClipLoader color="#1D4ED8" loading={loading} size={30} />
-//           </div>
-//         )}
-//       </div>
-
-//       {temperature !== null && <p className="mt-4 text-xl font-bold">Temperature: {temperature} °C</p>}
-      
-//       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
-//     </div>
-//   );
-// };
-
-// export default DoctorVitals;
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { ClipLoader } from "react-spinners";
+import {
+  FaCheckCircle,
+  FaTimesCircle,
+  FaInfoCircle,
+  FaExclamationTriangle,
+} from "react-icons/fa";
+import ClipLoader from "react-spinners/ClipLoader";
 
 const DoctorVitals = () => {
   const { userRole } = useAuth();
-  const [profileExists, setProfileExists] = useState(false); // State to track profile existence
+  const [profileExists, setProfileExists] = useState(false);
   const [deviceId, setDeviceId] = useState("");
   const [devices, setDevices] = useState([]);
   const [temperature, setTemperature] = useState(null);
   const [socket, setSocket] = useState(null);
   const [connected, setConnected] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [hardwareConfigured, setHardwareConfigured] = useState(false);
+  const [sensorErrorPrompt, setSensorErrorPrompt] = useState(false);
 
-  // Check if the doctor profile exists on component mount
   useEffect(() => {
     const checkProfileExists = async () => {
       const token = JSON.parse(localStorage.getItem("token"));
       if (!token || !token.access) return;
 
-      const headers = {
-        Authorization: "Bearer " + token.access,
-      };
+      const headers = { Authorization: "Bearer " + token.access };
 
       try {
-        const response = await axios.get("http://127.0.0.1:8000/api/users/doctorprofile/", { headers });
-        setProfileExists(true); // Profile exists
+        await axios.get("http://127.0.0.1:8000/api/users/doctorprofile/", {
+          headers,
+        });
+        setProfileExists(true);
       } catch (error) {
         if (error.response && error.response.status === 404) {
-          setProfileExists(false); // Profile does not exist
+          setProfileExists(false);
         } else {
-          toast.error(`Error checking profile: ${error.response?.data?.detail || error.message}`);
+          toast.error(
+            `Error checking profile: ${
+              error.response?.data?.detail || error.message
+            }`
+          );
         }
       }
     };
 
     checkProfileExists();
-  }, []); // Add userRole to the dependency array if necessary
+  }, []);
 
-  // Fetch devices only if the profile exists
   useEffect(() => {
     const fetchDevices = async () => {
       const token = JSON.parse(localStorage.getItem("token"));
       if (!token || !token.access) return;
 
-      const headers = {
-        Authorization: "Bearer " + token.access,
-      };
+      const headers = { Authorization: "Bearer " + token.access };
 
       try {
-        const response = await axios.get("http://127.0.0.1:8000/api/users/devices/", { headers });
+        const response = await axios.get(
+          "http://127.0.0.1:8000/api/users/devices/",
+          { headers }
+        );
         setDevices(response.data);
-        toast.dismiss(); // Dismiss any existing success toast
         toast.success("Devices fetched successfully!");
       } catch (error) {
-        toast.dismiss(); // Dismiss any existing error toast
-        toast.error(`Error fetching devices: ${error.response?.data?.detail || error.message}`);
+        toast.error(
+          `Error fetching devices: ${
+            error.response?.data?.detail || error.message
+          }`
+        );
       }
     };
 
     if (profileExists) {
       fetchDevices();
     }
-  }, [profileExists]); // Fetch devices only if the profile exists
+  }, [profileExists]);
 
-  // Fetch temperature from API
   const fetchTemperature = async () => {
     const token = JSON.parse(localStorage.getItem("token"));
     if (!token || !token.access) return;
 
-    const headers = {
-      Authorization: "Bearer " + token.access,
-    };
+    const headers = { Authorization: "Bearer " + token.access };
+    setLoading(true);
 
-    setLoading(true); // Start loading
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/users/doctorvitals/", { headers });
-      console.log("Temperature API response:", response.data);
-      
+      const response = await axios.get(
+        "http://127.0.0.1:8000/api/users/doctorvitals/",
+        { headers }
+      );
       if (Array.isArray(response.data) && response.data.length > 0) {
         const temperatureData = response.data[0];
         if (temperatureData.temperature !== undefined) {
@@ -281,137 +100,311 @@ const DoctorVitals = () => {
           console.error("Temperature field is missing from the response.");
         }
       } else {
-        console.error("Temperature data is missing or not in the expected format.");
+        console.error(
+          "Temperature data is missing or not in the expected format."
+        );
       }
     } catch (error) {
-      toast.dismiss(); // Dismiss any existing error toast
-      toast.error(`Error fetching temperature: ${error.response?.data?.detail || error.message}`);
+      toast.error(
+        `Error fetching temperature: ${
+          error.response?.data?.detail || error.message
+        }`
+      );
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
 
-  // Function to connect to WebSocket
   const handleConnect = () => {
     if (!deviceId) {
-      toast.dismiss(); // Dismiss any existing warning toast
       toast.warn("Please select a device.");
       return;
     }
-
+  
     const token = JSON.parse(localStorage.getItem("token"));
     if (!token || !token.access) {
-      toast.dismiss(); // Dismiss any existing error toast
       toast.error("Authentication token is missing.");
       return;
     }
-
-    const newSocket = new WebSocket(`ws://127.0.0.1:8000/ws/vitals/?device_id=${deviceId}&token=${token.access}`);
-
+  
+    const newSocket = new WebSocket(
+      `ws://127.0.0.1:8000/ws/vitals/?device_id=${deviceId}&token=${token.access}`
+    );
+  
+    let hiResponseTimeout;
+    let hiInterval;
+  
+    const sendHiMessage = () => {
+      if (newSocket.readyState === WebSocket.OPEN) {
+        newSocket.send(JSON.stringify({ message: "Hi" }));
+        console.log("Sent 'Hi' to server");
+  
+        // Clear any previous timeout to avoid duplicates
+        if (hiResponseTimeout) clearTimeout(hiResponseTimeout);
+  
+        // Set a 10-second timeout to check for the response
+        hiResponseTimeout = setTimeout(() => {
+          toast.error("Hardware not configured. Please refresh the page and connect again.");
+          disconnectSocket(); // Optionally disconnect if no response
+        }, 10000); // 10 seconds
+      }
+    };
+  
     newSocket.onopen = () => {
       console.log("WebSocket connection established.");
       setConnected(true);
-      toast.dismiss(); // Dismiss any existing success toast
       toast.success("Connected to WebSocket!");
+  
+      // Send initial "Hi" message and set up interval to send every 2 minutes
+      sendHiMessage();
+      hiInterval = setInterval(sendHiMessage, 120000); // 2 minutes
     };
-
+  
     newSocket.onmessage = (event) => {
       const data = JSON.parse(event.data);
       console.log("Received WebSocket data:", data);
-      
-      if (data.Status === 'Reading Complete') {
+  
+      // Clear timeout if we received the "Hi" response
+      if (data.Status === "Hi") {
+        clearTimeout(hiResponseTimeout);
+        setStatusMessage("Hardware Configured");
+        setHardwareConfigured(true);
+        setSensorErrorPrompt(false);
+      } else if (data.Status === "Sensor initialized successfuly") {
+        clearTimeout(hiResponseTimeout);
+        setStatusMessage("Temperature Sensor Initialized");
+        setSensorErrorPrompt(false);
+      } else if (data.Status === "Sensor Initialization Failed") {
+        clearTimeout(hiResponseTimeout);
+        setStatusMessage("Sensor Initialization Failed");
+        toast.error("Sensor Initialization Failed. Skipping...");
+        handleSkip();
+      } else if (data.Status === "Result Calculated") {
+        clearTimeout(hiResponseTimeout);
+        setStatusMessage("Reading Complete");
+        setSensorErrorPrompt(false);
         fetchTemperature();
+      } else if (data.Status === "Calculating") {
+        clearTimeout(hiResponseTimeout);
+        setStatusMessage("Calculating");
+        setSensorErrorPrompt(false);
+      } else if (data.Status === "Sensor Reading Failed") {
+        clearTimeout(hiResponseTimeout);
+        setStatusMessage("Sensor Reading Failed");
+        setSensorErrorPrompt(true);
       }
     };
-
+  
     newSocket.onclose = () => {
       console.log("WebSocket connection closed.");
-      setConnected(false);
-      setSocket(null);
-      toast.dismiss(); // Dismiss any existing info toast
+      resetConnectionState();
       toast.info("WebSocket connection closed.");
+      clearInterval(hiInterval);
+      clearTimeout(hiResponseTimeout);
     };
-
+  
     newSocket.onerror = (error) => {
       console.error("WebSocket error:", error);
-      toast.dismiss(); // Dismiss any existing error toast
+      resetConnectionState();
       toast.error("Error with WebSocket connection.");
-      setConnected(false);
+      clearInterval(hiInterval);
+      clearTimeout(hiResponseTimeout);
     };
-
+  
     setSocket(newSocket);
   };
-
-  // Function to request temperature vital
   const requestTemperature = () => {
-    if (socket) {
+    if (socket && hardwareConfigured) {
       socket.send(JSON.stringify({ message: "Temperature" }));
-      toast.dismiss(); // Dismiss any existing info toast
       toast.info("Requesting temperature...");
-      setLoading(true); // Start loading
+      setLoading(true);
+    } else {
+      toast.warn(
+        "Cannot request temperature. Ensure the hardware is configured."
+      );
     }
   };
 
-  return (
-    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md mt-10">
-      <h1 className="text-3xl font-bold text-center mb-6">Doctor Vitals</h1>
-      
-      {!profileExists && (
-        <div className="mb-4 p-4 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded">
-          <p>Please create your profile to access the vitals functionality.</p>
-        </div>
-      )}
+  const disconnectSocket = () => {
+    if (socket) {
+      socket.close();
+    }
+    resetConnectionState();
+  };
 
-      {profileExists && (
+  const resetConnectionState = () => {
+    setSocket(null);
+    setDeviceId("");
+    setConnected(false);
+    setLoading(false);
+    setTemperature(null);
+    setStatusMessage("");
+    setHardwareConfigured(false);
+    setSensorErrorPrompt(false);
+  };
+
+  const handleRetry = () => {
+    if (socket) {
+      socket.send(JSON.stringify({ message: "Temperature" }));
+      setSensorErrorPrompt(false);
+      setLoading(true);
+    }
+  };
+
+  const handleSkip = () => {
+    setSensorErrorPrompt(false);
+    setStatusMessage("");
+    setLoading(false);
+    setTemperature(null);
+  };
+
+  useEffect(() => {
+    if (statusMessage === "Reading Complete") {
+      const timer = setTimeout(() => setStatusMessage(""), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [statusMessage]);
+
+  const StatusMessage = ({ message }) => {
+    let bgColor, textColor, Icon;
+
+    switch (message) {
+      case "Hardware Configured":
+        bgColor = "bg-green-100 border-l-4 border-green-500";
+        textColor = "text-green-800";
+        Icon = FaCheckCircle;
+        break;
+      case "Temperature Sensor Initialized":
+        bgColor = "bg-green-100 border-l-4 border-green-500";
+        textColor = "text-green-800";
+        Icon = FaCheckCircle;
+        break;
+      case "Sensor Initialization Failed":
+      case "Sensor Reading Failed":
+        bgColor = "bg-red-100 border-l-4 border-red-500";
+        textColor = "text-red-800";
+        Icon = FaTimesCircle;
+        break;
+      case "Reading Complete":
+        bgColor = "bg-blue-100 border-l-4 border-blue-500";
+        textColor = "text-blue-800";
+        Icon = FaCheckCircle;
+        break;
+      case "Calculating":
+        bgColor = "bg-yellow-100 border-l-4 border-yellow-500";
+        textColor = "text-yellow-800";
+        Icon = FaInfoCircle;
+        break;
+      case "Please place your finger properly.":
+        bgColor = "bg-orange-100 border-l-4 border-orange-500";
+        textColor = "text-orange-800";
+        Icon = FaExclamationTriangle;
+        break;
+      default:
+        bgColor = "bg-gray-100 border-l-4 border-gray-500";
+        textColor = "text-gray-800";
+        Icon = FaTimesCircle;
+        break;
+    }
+
+    return (
+      <div
+        className={`flex items-center p-4 my-4 rounded-lg shadow-md transition duration-300 ease-in-out ${bgColor} ${textColor}`}
+      >
+        <Icon className={`${textColor} mr-2`} size={20} />
+        <p>{message}</p>
+      </div>
+    );
+  };
+
+  return (
+    <div className="p-6 bg-white shadow-md rounded-lg">
+      <h1 className="text-3xl font-bold mb-6 text-gray-800">Doctor Vitals</h1>
+      {!profileExists ? (
+        <p className="text-lg text-gray-600">Please create your profile to continue.</p>
+      ) : (
         <>
-          <div className="mt-6">
-            <label htmlFor="deviceId" className="block text-sm font-medium text-gray-700 mb-2">
-              Select your Device ID:
+          <div className="mt-4">
+            <label htmlFor="deviceId" className="block text-lg font-semibold text-gray-700">
+              Device ID:
             </label>
             <select
               id="deviceId"
               value={deviceId}
               onChange={(e) => setDeviceId(e.target.value)}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-blue-500 focus:border-blue-500"
               required
             >
-              <option value="" disabled>Select Device ID</option>
+              <option value="" disabled>
+                Select Device ID
+              </option>
               {devices.map((device) => (
                 <option key={device.device_id} value={device.device_id}>
-                  {device.device_id} - {device.device_type} ({device.owner_name})
+                  {device.device_id}
                 </option>
               ))}
             </select>
-            <button
-              onClick={handleConnect}
-              disabled={connected}
-              className={`mt-4 py-2 px-4 rounded-md ${connected ? 'bg-green-500' : 'bg-blue-500'} text-white hover:bg-opacity-80 transition duration-300`}
-            >
-              {connected ? "Connected" : "Connect"}
-            </button>
           </div>
-
           <div className="mt-6">
-            <h2 className="text-lg font-semibold">Collect Vitals:</h2>
-            <button
-              onClick={requestTemperature}
-              disabled={!connected || loading}
-              className={`mt-2 py-2 px-4 rounded-md ${!connected || loading ? 'bg-gray-300' : 'bg-blue-500'} text-white hover:bg-opacity-80 transition duration-300`}
-            >
-              {loading ? "Collecting..." : "Request Temperature"}
-            </button>
-            {loading && (
-              <div className="flex justify-center mt-2">
-                <ClipLoader color="#1D4ED8" loading={loading} size={30} />
-              </div>
+            {!connected ? (
+              <button
+                onClick={handleConnect}
+                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-md transition duration-300 shadow-md"
+              >
+                Connect
+              </button>
+            ) : (
+              <button
+                onClick={disconnectSocket}
+                className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-md transition duration-300 shadow-md"
+              >
+                Disconnect
+              </button>
             )}
           </div>
 
-          {temperature !== null && <p className="mt-4 text-xl font-bold">Temperature: {temperature} °C</p>}
+          <div className="mt-6">
+            <h2 className="text-lg font-semibold text-gray-700">Collect Vitals:</h2>
+            <button
+              onClick={requestTemperature}
+              disabled={!connected || loading || !hardwareConfigured}
+              className={`mt-2 py-2 px-6 rounded-md shadow-md transition duration-300 text-white ${
+                !connected || loading || !hardwareConfigured
+                  ? "bg-gray-300 cursor-not-allowed"
+                  : "bg-blue-500 hover:bg-blue-600"
+              }`}
+            >
+              {loading ? <ClipLoader color="#fff" size={20} /> : "Request Temperature"}
+            </button>
+          </div>
+
+          {statusMessage && <StatusMessage message={statusMessage} />}
+
+          {sensorErrorPrompt && (
+            <div className="mt-4 flex">
+              <button
+                onClick={handleRetry}
+                className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-md mr-2 shadow-md transition duration-300"
+              >
+                Retry
+              </button>
+              <button
+                onClick={handleSkip}
+                className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md shadow-md transition duration-300"
+              >
+                Skip
+              </button>
+            </div>
+          )}
+
+          {temperature && (
+            <p className="mt-6 text-lg text-gray-800">
+              Temperature: <span className="font-bold text-blue-600">{temperature}°C</span>
+            </p>
+          )}
         </>
       )}
-      
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 };
