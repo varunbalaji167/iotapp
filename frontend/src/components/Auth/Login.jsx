@@ -1,6 +1,6 @@
 // src/components/Login.jsx
 import React, { useState } from "react";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import axios from "axios";
 import { FaUser, FaLock, FaEye, FaEyeSlash } from "react-icons/fa"; // Importing icons

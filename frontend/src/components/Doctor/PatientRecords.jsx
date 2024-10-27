@@ -2,8 +2,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useTable, useGlobalFilter, useSortBy } from "react-table";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { jwtDecode } from "jwt-decode";
+import DoctorNavbar from "./DoctorNavbar";
 
 const PatientRecords = () => {
   const { userRole } = useAuth();
@@ -20,65 +21,12 @@ const PatientRecords = () => {
     );
   }
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     const token = JSON.parse(localStorage.getItem("token"));
-  //     if (!token) {
-  //       setError("Authentication token is missing.");
-  //       setLoading(false);
-  //       return;
-  //     }
-
-  //     const getTokenInfo = (token) => {
-  //       try {
-  //         return jwtDecode(token.access);
-  //       } catch {
-  //         setError("Invalid authentication token.");
-  //         return null;
-  //       }
-  //     };
-
-  //     const tokenInfo = getTokenInfo(token);
-  //     if (!tokenInfo) {
-  //       setError("Invalid authentication token.");
-  //       setLoading(false);
-  //       return;
-  //     }
-
-  //     const now = Date.now() / 1000;
-  //     if (tokenInfo.exp < now) {
-  //       setError("Authentication token has expired. Please log in again.");
-  //       setLoading(false);
-  //       return;
-  //     }
-
-  //     try {
-  //       const response = await axios.get(
-  //         "http://localhost:8000/api/users/patient-profiles/",
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${token.access}`,
-  //           },
-  //         }
-  //       );
-
-  //       setData(response.data.length > 0 ? response.data : []);
-  //     } catch (err) {
-  //       setError(err.message);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchData();
-  // }, [userRole]);
-
   useEffect(() => {
     let refreshTimeout; // Store the timeout to clear it properly
-  
+
     const fetchData = async (accessToken) => {
       setLoading(true); // Start loading when fetching data
-  
+
       try {
         const response = await axios.get(
           "http://localhost:8000/api/users/patient-profiles/",
@@ -88,7 +36,7 @@ const PatientRecords = () => {
             },
           }
         );
-  
+
         setData(response.data.length > 0 ? response.data : []);
         setLoading(false); // Stop loading after fetching
       } catch (err) {
@@ -96,40 +44,46 @@ const PatientRecords = () => {
         setLoading(false); // Stop loading in case of error
       }
     };
-  
+
     const scheduleTokenRefresh = (expiresIn) => {
       const timeout = expiresIn - 60; // Refresh 1 minute before expiration
       refreshTimeout = setTimeout(async () => {
         await handleTokenRefresh(); // Call the refresh function
       }, timeout * 1000);
     };
-  
+
     const handleTokenRefresh = async () => {
       const token = JSON.parse(localStorage.getItem("token"));
       const refreshToken = token?.refresh;
-  
+
       if (!refreshToken) {
         setError("Refresh token is missing.");
         setLoading(false);
         return;
       }
-  
+
       try {
-        const response = await axios.post("http://localhost:8000/api/users/refresh/", {
-          refresh: refreshToken,
-        });
-  
+        const response = await axios.post(
+          "http://localhost:8000/api/users/refresh/",
+          {
+            refresh: refreshToken,
+          }
+        );
+
         // Update tokens in localStorage
         const newAccessToken = response.data.access;
-        localStorage.setItem("token", JSON.stringify({
-          access: newAccessToken,
-          refresh: refreshToken, // Keep the same refresh token
-        }));
-  
+        localStorage.setItem(
+          "token",
+          JSON.stringify({
+            access: newAccessToken,
+            refresh: refreshToken, // Keep the same refresh token
+          })
+        );
+
         const tokenInfo = jwtDecode(newAccessToken);
         const now = Date.now() / 1000;
         const expiresIn = tokenInfo.exp - now;
-  
+
         scheduleTokenRefresh(expiresIn); // Schedule the next refresh
         fetchData(newAccessToken); // Fetch data with the new access token
       } catch (error) {
@@ -137,21 +91,21 @@ const PatientRecords = () => {
         setLoading(false);
       }
     };
-  
+
     const initTokenHandling = () => {
       const token = JSON.parse(localStorage.getItem("token"));
       const accessToken = token?.access;
-  
+
       if (!accessToken) {
         setError("Authentication token is missing.");
         setLoading(false);
         return;
       }
-  
+
       const tokenInfo = jwtDecode(accessToken);
       const now = Date.now() / 1000;
       const expiresIn = tokenInfo.exp - now;
-  
+
       if (expiresIn > 60) {
         // If the token is valid for more than 1 minute
         scheduleTokenRefresh(expiresIn); // Schedule token refresh
@@ -161,15 +115,14 @@ const PatientRecords = () => {
         handleTokenRefresh();
       }
     };
-  
+
     // Initialize token handling on component mount
     if (userRole === "doctor") {
       initTokenHandling();
     }
-  
+
     // Clean up any scheduled timeouts on component unmount
     return () => clearTimeout(refreshTimeout);
-  
   }, [userRole]);
 
   const columns = React.useMemo(
@@ -233,69 +186,78 @@ const PatientRecords = () => {
   if (error) return <div className="text-red-500 text-center">{error}</div>;
 
   return (
-    <div className="max-w-6xl mx-auto p-5 bg-white shadow-md rounded-lg">
-      <h1 className="text-2xl font-bold mb-4 text-center">Patient Records</h1>
-      <input
-        value={filterInput}
-        onChange={handleFilterChange}
-        placeholder="Search..."
-        className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
-      />
-      {data.length === 0 ? (
-        <div className="text-center py-4 text-gray-500">
-          No patient records available.
-        </div>
-      ) : (
-        <table
-          {...getTableProps()}
-          className="min-w-full bg-gray-100 border border-gray-300 rounded-lg overflow-hidden"
-        >
-          <thead className="bg-blue-500 text-white">
-            {headerGroups.map((headerGroup) => (
-              <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
-                {headerGroup.headers.map((column) => (
-                  <th
-                    {...column.getHeaderProps(column.getSortByToggleProps())}
-                    className="py-3 px-4 text-left border-b border-gray-300"
-                    key={column.id}
-                  >
-                    {column.render("Header")}
-                    <span>
-                      {column.isSorted
-                        ? column.isSortedDesc
-                          ? " 🔽"
-                          : " 🔼"
-                        : ""}
-                    </span>
-                  </th>
+    <div className="bg-slate-100 min-h-screen flex flex-col">
+      <DoctorNavbar />
+      <div className="container mx-auto p-4 md:p-6 lg:p-8">
+        <h1 className="text-2xl font-bold mb-4 text-center text-gray-800">
+          Patient Records
+        </h1>
+        
+        <input
+          value={filterInput}
+          onChange={handleFilterChange}
+          placeholder="Search..."
+          className="w-full p-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
+        />
+
+        {data.length === 0 ? (
+          <div className="text-center py-4 text-gray-500">
+            No patient records available.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table
+              {...getTableProps()}
+              className="min-w-full bg-gray-100 border border-gray-300 rounded-lg overflow-hidden"
+            >
+              <thead className="bg-blue-500 text-white">
+                {headerGroups.map((headerGroup) => (
+                  <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
+                    {headerGroup.headers.map((column) => (
+                      <th
+                        {...column.getHeaderProps(column.getSortByToggleProps())}
+                        className="py-3 px-4 text-left border-b border-gray-300 whitespace-nowrap"
+                        key={column.id}
+                      >
+                        {column.render("Header")}
+                        <span>
+                          {column.isSorted
+                            ? column.isSortedDesc
+                              ? " 🔽"
+                              : " 🔼"
+                            : ""}
+                        </span>
+                      </th>
+                    ))}
+                  </tr>
                 ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody {...getTableBodyProps()} className="bg-white">
-            {rows.map((row) => {
-              prepareRow(row);
-              return (
-                <tr
-                  {...row.getRowProps()}
-                  className="hover:bg-gray-50"
-                  key={row.original.unique_id || row.id}
-                >
-                  {row.cells.map((cell) => (
-                    <td
-                      {...cell.getCellProps()}
-                      className="py-2 px-4 border-b border-gray-300"
-                      key={cell.row.id + cell.column.id} // Use both row.id and column.id for uniqueness
+              </thead>
+              <tbody {...getTableBodyProps()} className="bg-white">
+                {rows.map((row) => {
+                  prepareRow(row);
+                  return (
+                    <tr
+                      {...row.getRowProps()}
+                      className="hover:bg-gray-50 transition-colors"
+                      key={row.original.unique_id || row.id}
                     >
-                      {cell.render("Cell")}
-                    </td>
-                  ))}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      )}
+                      {row.cells.map((cell) => (
+                        <td
+                          {...cell.getCellProps()}
+                          className="py-2 px-4 border-b border-gray-300 whitespace-nowrap text-gray-700 text-sm lg:text-base"
+                          key={cell.row.id + cell.column.id} // Use both row.id and column.id for uniqueness
+                        >
+                          {cell.render("Cell")}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -86,12 +86,15 @@
 //   }, [userRole]);
 
 import React, { useState, useEffect, useRef } from "react";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 import Webcam from "react-webcam";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import PatientNavbar from "./PatientNavbar";
+import { FaUser, FaCalendarAlt, FaWeight, FaRuler, FaTint, FaCamera } from "react-icons/fa";
+
 
 const PatientProfile = () => {
   const [profile, setProfile] = useState({
@@ -369,157 +372,123 @@ const PatientProfile = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white shadow-md rounded-md p-4">
-      <h2 className="text-2xl font-bold mb-4">
-        {isProfileCreated ? "Update" : "Create"} Patient Profile
+    <div className="bg-slate-100 min-h-screen flex flex-col">
+      <PatientNavbar />
+      <div className="container mx-auto p-6 md:p-12 flex-grow">
+        <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
+          Complete Your Profile
+        </h2>
         {profile.profile_picture && (
-          <img
-            src={
-              profile.profile_picture.startsWith("data:image")
-                ? profile.profile_picture
-                : `http://127.0.0.1:8000${profile.profile_picture}`
-            }
-            alt="Current Profile"
-            className="mb-2 rounded-full"
-            style={{ width: "100px", height: "100px", objectFit: "cover" }}
-          />
-        )}
-      </h2>
-      {error && <p className="text-red-500">{error}</p>}
-      {success && <p className="text-green-500">{success}</p>}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium">
-            Name
-          </label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={
-              isProfileCreated ? newProfile?.name || profile.name : profile.name
-            }
-            onChange={handleChange}
-            className="mt-1 block w-full p-2 border rounded-md"
-            required
-          />
-        </div>
-
-        <div>
-          <label htmlFor="dob" className="block text-sm font-medium">
-            Date of Birth
-          </label>
-          <input
-            type="date"
-            id="dob"
-            name="dob"
-            value={
-              isProfileCreated ? newProfile?.dob || profile.dob : profile.dob
-            }
-            onChange={handleChange}
-            className="mt-1 block w-full p-2 border rounded-md"
-            required
-          />
-        </div>
-
-        <div>
-          <label htmlFor="blood_group" className="block text-sm font-medium">
-            Blood Group
-          </label>
-          <input
-            type="text"
-            id="blood_group"
-            name="blood_group"
-            value={
-              isProfileCreated
-                ? newProfile?.blood_group || profile.blood_group
-                : profile.blood_group
-            }
-            onChange={handleChange}
-            className="mt-1 block w-full p-2 border rounded-md"
-            required
-          />
-        </div>
-
-        <div>
-          <label htmlFor="height" className="block text-sm font-medium">
-            Height (cm)
-          </label>
-          <input
-            type="number"
-            id="height"
-            name="height"
-            value={
-              isProfileCreated
-                ? newProfile?.height || profile.height
-                : profile.height
-            }
-            onChange={handleChange}
-            className="mt-1 block w-full p-2 border rounded-md"
-            required
-          />
-        </div>
-
-        <div>
-          <label htmlFor="weight" className="block text-sm font-medium">
-            Weight (kg)
-          </label>
-          <input
-            type="number"
-            id="weight"
-            name="weight"
-            value={
-              isProfileCreated
-                ? newProfile?.weight || profile.weight
-                : profile.weight
-            }
-            onChange={handleChange}
-            className="mt-1 block w-full p-2 border rounded-md"
-            required
-          />
-        </div>
-
-        {/* Webcam section */}
-        <Webcam
-          audio={false}
-          ref={webcamRef}
-          screenshotFormat="image/jpeg"
-          width={300}
-          height={200}
-          className="border rounded-md"
-        />
-        {/* Preview of captured image */}
-        {capturedImage && (
-          <div>
-            <h3>Preview of captured image</h3>
+          <div className="flex justify-center mb-4">
             <img
-              src={capturedImage}
-              alt="Captured"
-              className="mb-2 rounded-md"
+              src={
+                profile.profile_picture.startsWith("data:image")
+                  ? profile.profile_picture
+                  : `http://127.0.0.1:8000${profile.profile_picture}`
+              }
+              alt="Current Profile"
+              className="rounded-full border-4 border-blue-300"
+              style={{ width: "150px", height: "150px", objectFit: "cover" }}
             />
           </div>
         )}
-        <button
-          type="button"
-          onClick={captureImage}
-          className="bg-blue-500 text-white py-2 px-4 rounded-md mt-2"
-        >
-          Capture Image
-        </button>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          className="mt-2"
-        />
+        {error && <p className="text-red-500 text-center">{error}</p>}
+        {success && <p className="text-green-500 text-center">{success}</p>}
+        
+        <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow-lg">
+          {[
+            { label: "Name", type: "text", name: "name", icon: FaUser },
+            { label: "Date of Birth", type: "date", name: "dob", icon: FaCalendarAlt },
+            { label: "Height (cm)", type: "number", name: "height", icon: FaRuler },
+            { label: "Weight (kg)", type: "number", name: "weight", icon: FaWeight },
+          ].map(({ label, type, name, icon: Icon }) => (
+            <div key={name} className="flex flex-col md:flex-row md:items-center">
+              <div className="flex items-center mb-2 md:mb-0 md:w-1/3">
+                <Icon className="mr-2 text-gray-600" />
+                <label htmlFor={name} className="block text-sm font-medium text-gray-700">
+                  {label}
+                </label>
+              </div>
+              <input
+                type={type}
+                id={name}
+                name={name}
+                value={isProfileCreated ? newProfile?.[name] || profile[name] : profile[name]}
+                onChange={handleChange}
+                className="mt-1 block w-full md:w-2/3 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+          ))}
+          {/* Blood Group Dropdown */}
+          <div className="flex flex-col md:flex-row md:items-center">
+            <div className="flex items-center mb-2 md:mb-0 md:w-1/3">
+              <FaTint className="mr-2 text-gray-600" />
+              <label htmlFor="blood_group" className="block text-sm font-medium text-gray-700">
+                Blood Group
+              </label>
+            </div>
+            <select
+              id="blood_group"
+              name="blood_group"
+              value={isProfileCreated ? newProfile?.blood_group || profile.blood_group : profile.blood_group}
+              onChange={handleChange}
+              className="mt-1 block w-full md:w-2/3 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              required
+            >
+              <option value="" disabled>
+                Select Blood Group
+              </option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+            </select>
+          </div>
 
-        <button
-          type="submit"
-          className="bg-green-500 text-white py-2 px-4 rounded-md"
-        >
-          {isProfileCreated ? "Update" : "Create"} Profile
-        </button>
-      </form>
+          <div className="flex flex-col items-center">
+            <Webcam
+              audio={false}
+              ref={webcamRef}
+              screenshotFormat="image/jpeg"
+              className="border rounded-md mb-4 w-64 h-48 md:w-72 md:h-56"
+            />
+            {capturedImage && (
+              <div className="text-center mb-4">
+                <h3 className="text-lg font-medium underline">Preview of Captured Image</h3>
+                <img src={capturedImage} alt="Captured" className="border rounded-md mb-2 w-64 h-48 md:w-72 md:h-56 object-cover" />
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={captureImage}
+              className="bg-blue-500 text-white py-2 px-4 rounded-md mt-2 flex items-center"
+            >
+              <FaCamera className="mr-2" />
+              Capture Image
+            </button>
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-4 md:justify-between items-center mt-4">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="border border-gray-300 rounded-md p-2 w-full md:w-1/2"
+            />
+            <button
+              type="submit"
+              className="bg-green-600 text-white py-2 px-4 rounded-md flex items-center justify-center hover:bg-green-500 transition duration-200 w-full md:w-1/2 lg:w-40 h-12"
+            >
+              Submit
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

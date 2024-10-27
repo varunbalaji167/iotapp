@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from django.core.files.storage import default_storage
 from django.shortcuts import get_object_or_404
 from django.http import Http404
-from .models import CustomUser, PatientProfile, DoctorProfile, Devices, DoctorData, PatientData
+from .models import CustomUser, PatientProfile, DoctorProfile, Devices, DoctorData, PatientData, VitalHistoryPatient, VitalHistoryDoctor
 from .serializers import (
     RegisterSerializer,
     LoginSerializer,
@@ -15,6 +15,8 @@ from .serializers import (
     PatientDataSerializer,
     PatientProfileSerializer,
     DoctorProfileSerializer,
+    VitalHistoryPatientSerializer,
+    VitalHistoryDoctorSerializer
 )
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -168,4 +170,72 @@ class PatientDataView(APIView):
         patient_profile = get_object_or_404(PatientProfile, user=request.user)
         latest_vitals = PatientData.objects.filter(patient=patient_profile).order_by('-created_at')
         serializer = PatientDataSerializer(latest_vitals, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class PatientVitalHistoryView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        # Check if the logged-in user is a patient
+        if request.user.role != 'patient':
+            return Response({"detail": "Unauthorized. Only patients can access this data."},
+                            status=status.HTTP_403_FORBIDDEN)
+
+        # Get the PatientProfile linked to the logged-in user
+        try:
+            patient_profile = PatientProfile.objects.get(user=request.user.unique_id)
+        except PatientProfile.DoesNotExist:
+            return Response({"detail": "Patient profile not found."},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        # Filter vital records related to the logged-in patient's profile
+        vital_records = VitalHistoryPatient.objects.filter(patient=patient_profile).order_by('-recorded_at')
+        
+        serializer = VitalHistoryPatientSerializer(vital_records, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+class PatientVitalHistoryView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        # Check if the logged-in user is a patient
+        if request.user.role != 'patient':
+            return Response({"detail": "Unauthorized. Only patients can access this data."},
+                            status=status.HTTP_403_FORBIDDEN)
+
+        # Get the PatientProfile linked to the logged-in user
+        try:
+            patient_profile = PatientProfile.objects.get(user=request.user.unique_id)
+        except PatientProfile.DoesNotExist:
+            return Response({"detail": "Patient profile not found."},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        # Filter vital records related to the logged-in patient's profile
+        vital_records = VitalHistoryPatient.objects.filter(patient=patient_profile).order_by('-recorded_at')
+        
+        serializer = VitalHistoryPatientSerializer(vital_records, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+class DoctorVitalHistoryView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        # Check if the logged-in user is a doctor
+        if request.user.role != 'doctor':
+            return Response({"detail": "Unauthorized. Only doctors can access this data."},
+                            status=status.HTTP_403_FORBIDDEN)
+
+        # Get the DoctorProfile linked to the logged-in user
+        try:
+            doctor_profile = DoctorProfile.objects.get(user=request.user.unique_id)
+        except DoctorProfile.DoesNotExist:
+            return Response({"detail": "Doctor profile not found."},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        # Filter vital records related to the logged-in doctor's profile
+        vital_records = VitalHistoryDoctor.objects.filter(doctor=doctor_profile).order_by('-recorded_at')
+        
+        serializer = VitalHistoryDoctorSerializer(vital_records, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

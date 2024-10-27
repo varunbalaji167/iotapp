@@ -11,6 +11,8 @@ from .views import (
     DeviceRetrieveUpdateDestroyAPIView,
     DoctorDataView,
     PatientDataView,
+    PatientVitalHistoryView,
+    DoctorVitalHistoryView,
 )
 
 urlpatterns = [
@@ -32,4 +34,6 @@ urlpatterns = [
     ),
     path("doctorvitals/", DoctorDataView.as_view(), name="doctor-data"),
     path("patientvitals/", PatientDataView.as_view(), name="patient-data"),
+    path("patientvitals/history/", PatientVitalHistoryView.as_view(), name='patient-vital-history'),
+    path("doctorvitals/history/", DoctorVitalHistoryView.as_view(), name='doctor-vital-history'),
 ]

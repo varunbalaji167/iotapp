@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import TempVitals from "./TempVitals";
-import OximeterVitals from "./OximeterVitals";
+import TempVitals from "../Vitals/TempVitals";
+import OximeterVitals from "../Vitals/OximeterVitals";
 
-const DoctorVitals = () => {
+const PatientVitals = () => {
   const { userRole } = useAuth();
   const [profileExists, setProfileExists] = useState(false);
   const [deviceId, setDeviceId] = useState("");
@@ -20,7 +20,7 @@ const DoctorVitals = () => {
       const headers = { Authorization: "Bearer " + token.access };
 
       try {
-        await axios.get("http://127.0.0.1:8000/api/users/doctorprofile/", {
+        await axios.get("http://127.0.0.1:8000/api/users/patientprofile/", {
           headers,
         });
         setProfileExists(true);
@@ -69,12 +69,12 @@ const DoctorVitals = () => {
   }, [profileExists]);
 
   return (
-    <div className="p-6 bg-white shadow-md rounded-lg">
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">
+    <div className="p-6 md:p-8 lg:p-12 bg-white shadow-lg rounded-lg max-w-full mx-auto my-10">
+      <h1 className="text-3xl font-bold mb-6 text-gray-800 text-center">
         Collect Your Vitals
       </h1>
       {!profileExists ? (
-        <p className="text-lg text-gray-600">
+        <p className="text-lg text-gray-600 text-center">
           Please create your profile to continue.
         </p>
       ) : (
@@ -82,7 +82,7 @@ const DoctorVitals = () => {
           <div className="mt-4">
             <label
               htmlFor="deviceId"
-              className="block text-lg font-semibold text-gray-700"
+              className="block text-lg font-semibold text-gray-700 mb-2"
             >
               Device ID:
             </label>
@@ -90,7 +90,7 @@ const DoctorVitals = () => {
               id="deviceId"
               value={deviceId}
               onChange={(e) => setDeviceId(e.target.value)}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300 focus:border-blue-500 transition"
               required
             >
               <option value="" disabled>
@@ -102,7 +102,10 @@ const DoctorVitals = () => {
                 </option>
               ))}
             </select>
-            <div className="mt-6">
+          </div>
+
+          <div className="mt-6">
+            <div className="p-4 md:p-6 lg:p-8 bg-gray-50 rounded-lg shadow transition hover:shadow-lg mb-6">
               <TempVitals
                 deviceId={deviceId}
                 profileExists={profileExists}
@@ -112,7 +115,7 @@ const DoctorVitals = () => {
                 setDevices={setDevices}
               />
             </div>
-            <div className="mt-6">
+            <div className="p-4 md:p-6 lg:p-8 bg-gray-50 rounded-lg shadow transition hover:shadow-lg">
               <OximeterVitals
                 deviceId={deviceId}
                 profileExists={profileExists}
@@ -129,4 +132,4 @@ const DoctorVitals = () => {
   );
 };
 
-export default DoctorVitals;
+export default PatientVitals;

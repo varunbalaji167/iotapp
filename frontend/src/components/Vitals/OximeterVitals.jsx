@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -354,7 +354,7 @@ const OximeterVitals = ({
             <p className="mt-6 text-lg text-gray-800">
               Heart Rate:{" "}
               <span className="font-bold text-blue-600">{heart_rate} bpm </span>
-              Spo2: <span className="font-bold text-blue-600"> {spo2} bpm</span>
+              Spo2: <span className="font-bold text-blue-600"> {spo2} %</span>
             </p>
           )}
         </>
