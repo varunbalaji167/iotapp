@@ -17,7 +17,6 @@ import PatientNavbar from "./PatientNavbar";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faThermometerHalf, faHeartbeat, faTint, faVial, faLungs } from '@fortawesome/free-solid-svg-icons'; // Importing specific icons
 
-
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -32,7 +31,9 @@ const PatientVitalsHistory = () => {
   const { userRole } = useAuth();
   const [vitalData, setVitalData] = useState([]);
   const [error, setError] = useState("");
-  const today = new Date().toISOString().slice(0, 10);
+
+  // Set the initial date as today's date in Indian Standard Time in 'yyyy-mm-dd' format
+  const today = new Date().toLocaleDateString("en-CA"); // "en-CA" gives the format yyyy-mm-dd
   const [selectedFilters, setSelectedFilters] = useState({
     temperature: { date: today, filterType: "date" },
     glucose_level: { date: today, filterType: "date" },

@@ -15,7 +15,7 @@ import {
 } from "chart.js";
 import DoctorNavbar from "./DoctorNavbar";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faThermometerHalf, faHeartbeat, faTint, faVial, faLungs } from '@fortawesome/free-solid-svg-icons'; // Importing specific icons
+import { faThermometerHalf, faHeartbeat, faTint, faVial, faLungs } from '@fortawesome/free-solid-svg-icons';
 
 ChartJS.register(
   CategoryScale,
@@ -31,7 +31,9 @@ const DoctorVitalsHistory = () => {
   const { userRole } = useAuth();
   const [vitalData, setVitalData] = useState([]);
   const [error, setError] = useState("");
-  const today = new Date().toISOString().slice(0, 10);
+
+  // Set the initial date as today's date in 'yyyy-mm-dd' format
+  const today = new Date().toLocaleDateString("en-CA"); // "en-CA" gives the format yyyy-mm-dd
   const [selectedFilters, setSelectedFilters] = useState({
     temperature: { date: today, filterType: "date" },
     glucose_level: { date: today, filterType: "date" },
@@ -124,7 +126,7 @@ const DoctorVitalsHistory = () => {
           recordedDate >= selectedDateStart && recordedDate <= selectedDateEnd
         );
       }
-      return true; // Only handle 'date' filter now
+      return true;
     });
   };
 
@@ -134,8 +136,6 @@ const DoctorVitalsHistory = () => {
       filterType: "date",
     };
     const filteredData = filterDataByDate(vitalData, currentFilter);
-
-    // Reverse the filtered data to make the time increasing
     const reversedData = filteredData.reverse();
 
     const labels = reversedData.map((item) => {
@@ -233,7 +233,7 @@ const DoctorVitalsHistory = () => {
                     data={getChartData(key, label, borderColor)}
                     options={{
                       responsive: true,
-                      maintainAspectRatio: false, // Ensure chart is responsive
+                      maintainAspectRatio: false,
                       plugins: {
                         tooltip: {
                           callbacks: {
@@ -250,7 +250,7 @@ const DoctorVitalsHistory = () => {
                             color: "#555",
                           },
                           grid: {
-                            color: "rgba(0, 0, 0, 0.1)", // Subtle grid lines for better readability
+                            color: "rgba(0, 0, 0, 0.1)",
                           },
                         },
                         y: {
