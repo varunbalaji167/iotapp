@@ -103,6 +103,20 @@ class VitalDataConsumer(AsyncWebsocketConsumer):
         else:
             await self.send(text_data=json.dumps(message_data))
 
+    async def glucose_message(self, event):
+        """Handle temperature messages received in the temperature group."""
+        message = event['message']
+        message_data = json.loads(message)
+
+        glucose_level = message_data.get('Glucose')
+        status = message_data.get("Status")
+        glucose_samples = message_data.get('Samples')
+        if status and glucose_level and glucose_samples:
+            await self.send(text_data=json.dumps({'Status': status, 'Samples': glucose_samples}))
+            await self.save_glucose_to_db(glucose_level, glucose_samples)
+        else:
+            await self.send(text_data=json.dumps(message_data))
+
     async def oximeter_message(self, event):
         """Handle temperature messages received in the temperature group."""
         message = event['message']
@@ -130,14 +144,7 @@ class VitalDataConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({'Status': status}))
     
     
-    async def glucose_message(self, event):
-        """Handle temperature messages received in the temperature group."""
-        message = event['message']
-        message_data = json.loads(message)
-        glucose=message_data['Glucose']
-        samples=message_data['Samples']
-        await self.send(text_data=json.dumps(message_data))
-        await self.save_glucose_to_db(glucose,samples)
+
 
 
     @sync_to_async
@@ -163,27 +170,27 @@ class VitalDataConsumer(AsyncWebsocketConsumer):
                 patient_data.save()
 
     @sync_to_async
-    def save_glucose_to_db(self, glucose_level, samples):
+    def save_glucose_to_db(self, glucose_level, glucose_samples):
         """Save glucose level and samples data to the database."""
         if self.role == 'doctor':
             doctor_profile = self.user.doctorprofile
             doctor_data, created = DoctorData.objects.get_or_create(
                 doctor=doctor_profile,
-                defaults={'glucose_level': Decimal(glucose_level), 'glucose_samples': samples, 'created_at': timezone.now()}
+                defaults={'glucose_level': Decimal(glucose_level), 'glucose_samples': glucose_samples, 'created_at': timezone.now()}
             )
             if not created:
                 doctor_data.glucose_level = Decimal(glucose_level)
-                doctor_data.glucose_samples = samples  # Update the samples array
+                doctor_data.glucose_samples = glucose_samples  # Update the samples array
                 doctor_data.save()
         elif self.role == 'patient':
             patient_profile = self.user.patientprofile
             patient_data, created = PatientData.objects.get_or_create(
                 patient=patient_profile,
-                defaults={'glucose_level': Decimal(glucose_level), 'glucose_samples': samples, 'created_at': timezone.now()}
+                defaults={'glucose_level': Decimal(glucose_level), 'glucose_samples': glucose_samples, 'created_at': timezone.now()}
             )
             if not created:
                 patient_data.glucose_level = Decimal(glucose_level)
-                patient_data.glucose_samples = samples  # Update the samples array
+                patient_data.glucose_samples = glucose_samples  # Update the samples array
                 patient_data.save()
 
     @sync_to_async

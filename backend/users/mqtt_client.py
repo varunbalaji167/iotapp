@@ -30,6 +30,7 @@ def on_message(client, userdata, msg):
             print("This is a retained message", msg.payload)
         else:
             data = json.loads(msg.payload.decode().strip())
+            print(data)
             device_id = data.get("DeviceID")
             subject = data.get("Subject")
 
@@ -54,37 +55,62 @@ def on_message(client, userdata, msg):
                 )
 
             elif subject == "Glucose":
-                glucose_level = data.get("Glucose")
-                samples = data.get("Samples")
-                async_to_sync(channel_layer.group_send)(
-                    group_name,
-                    {
-                        "type": "glucose_message",
-                        "message": json.dumps({
-                            
-                            "Glucose": glucose_level,
-                            "Samples": samples
-                        })
-                    }
-                )
-
-            elif subject == "Temperature":
                 result = data.get("Result")
                 status = data.get("Status")
-            # If "Result" is "Awaiting", send only the "Status" in JSON format
+
                 if result == "Awaiting":
                     async_to_sync(channel_layer.group_send)(
                         group_name,
                         {
-                            "type": "temperature_message",
+                            "type": "glucose_message",
                             "message": json.dumps({
                                 "Status": status
                             })
                         }
                     )
-                
-                # If "Result" is "Success", send both "Status" and "Temperature" (or relevant fields for other subjects)
+
                 elif result == "Success":
+                    glucose_level = data.get("Glucose")
+                    glucose_samples = data.get("Samples")
+                    # Check if temperature exists for subjects like Temperature, otherwise send Status only
+                    async_to_sync(channel_layer.group_send)(
+                            group_name,
+                            {
+                                "type": "glucose_message",
+                                "message": json.dumps({
+                                    "Status": status,
+                                    "Glucose": glucose_level,
+                                    "Samples": glucose_samples
+                                })
+                            }
+                        )
+                elif result == "Retry":
+                    async_to_sync(channel_layer.group_send)(
+                        group_name,
+                        {
+                            "type": "glucose_message",
+                            "message": json.dumps({
+                                "Status": status
+                            })
+                        }
+                    )
+
+                elif result == "Failed":
+                    async_to_sync(channel_layer.group_send)(
+                        group_name,
+                        {
+                            "type": "glucose_message",
+                            "message": json.dumps({
+                                "Status": status
+                            })
+                        }
+                    )
+
+            elif subject == "Temperature":
+                result = data.get("Result")
+                status = data.get("Status") 
+                # If "Result" is "Success", send both "Status" and "Temperature" (or relevant fields for other subjects)
+                if result == "Success":
                     temperature = data.get("Temperature")
                     # Check if temperature exists for subjects like Temperature, otherwise send Status only
                    
@@ -98,7 +124,7 @@ def on_message(client, userdata, msg):
                                 })
                             }
                         )
-                elif result == "Retry":
+                elif result == "Awaiting":
                     async_to_sync(channel_layer.group_send)(
                         group_name,
                         {

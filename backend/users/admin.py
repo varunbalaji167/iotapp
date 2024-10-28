@@ -69,14 +69,14 @@ class DoctorDataAdmin(admin.ModelAdmin):
 # Custom admin class for VitalHistoryPatient
 class VitalHistoryPatientAdmin(admin.ModelAdmin):
     model = VitalHistoryPatient
-    list_display = ("patient", "temperature", "glucose_level", "oxygen_level", "heart_rate", "spo2", "recorded_at")
+    list_display = ("patient", "temperature", "glucose_level","glucose_samples", "oxygen_level", "heart_rate", "spo2", "recorded_at")
     list_filter = ("temperature", "glucose_level", "oxygen_level", "recorded_at")
     search_fields = ("patient__user__username", "glucose_level", "heart_rate")
 
 # Custom admin class for VitalHistoryDoctor
 class VitalHistoryDoctorAdmin(admin.ModelAdmin):
     model = VitalHistoryDoctor
-    list_display = ("doctor", "temperature", "glucose_level", "oxygen_level", "heart_rate", "spo2", "recorded_at")
+    list_display = ("doctor", "temperature", "glucose_level","glucose_samples", "oxygen_level", "heart_rate", "spo2", "recorded_at")
     list_filter = ("temperature", "glucose_level", "oxygen_level", "recorded_at")
     search_fields = ("doctor__user__username", "glucose_level", "heart_rate")
 

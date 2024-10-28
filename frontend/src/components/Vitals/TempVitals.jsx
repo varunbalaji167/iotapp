@@ -97,9 +97,6 @@ const TempVitals = ({
 
         // Set a 10-second timeout to check for the response
         hiResponseTimeout = setTimeout(() => {
-          toast.error(
-            "Hardware not configured. Please refresh the page and connect again."
-          );
           disconnectSocket(); // Optionally disconnect if no response
         }, 10000); // 10 seconds
       }
@@ -110,9 +107,9 @@ const TempVitals = ({
       setConnected(true);
       toast.success("Connected to WebSocket!");
 
-      // Send initial "Hi" message and set up interval to send every 2 minutes
+      // Send initial "Hi" message and set up interval to send every 1.5 minutes
       sendHiMessage();
-      hiInterval = setInterval(sendHiMessage, 120000); // 2 minutes
+      hiInterval = setInterval(sendHiMessage, 90000); // 1.5 minutes
     };
 
     newSocket.onmessage = (event) => {
@@ -125,7 +122,7 @@ const TempVitals = ({
         setStatusMessage("Hardware Configured");
         setHardwareConfigured(true);
         setSensorErrorPrompt(false);
-      } else if (data.Status === "Sensor initialized successfully") {
+      } else if (data.Status === "Sensor Initialized Successfully") {
         clearTimeout(hiResponseTimeout);
         setStatusMessage("Temperature Sensor Initialized");
         setSensorErrorPrompt(false);
@@ -185,8 +182,24 @@ const TempVitals = ({
     if (socket) {
       socket.close();
     }
+
+    // Show toast message explaining why the page is reloading
+    toast.error("Hardware Not Configured. Please Connect Again", {
+      onClose: () => {
+        // Reload the page after the toast message is shown
+        window.location.reload();
+      },
+      autoClose: 2000, // Set the duration you want the toast to be displayed
+    });
+  };
+
+  const disconnectSocket1 = () => {
+    if (socket) {
+      socket.close();
+    }
     resetConnectionState();
   };
+  
 
   const resetConnectionState = () => {
     setSocket(null);
@@ -302,7 +315,7 @@ const TempVitals = ({
               </button>
             ) : (
               <button
-                onClick={disconnectSocket}
+                onClick={disconnectSocket1}
                 className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-md transition duration-300 shadow-md"
               >
                 Disconnect

@@ -11,7 +11,7 @@ import {
 } from "react-icons/fa";
 import ClipLoader from "react-spinners/ClipLoader";
 
-const OximeterVitals = ({
+const GlucoseVitals = ({
   setDeviceId,
   deviceId,
   profileExists,
@@ -20,8 +20,7 @@ const OximeterVitals = ({
   setDevice,
 }) => {
   const { userRole } = useAuth();
-  const [spo2, setSPO2] = useState(null);
-  const [heart_rate, setHeart_Rate] = useState(null);
+  const [glucose, setGlucose] = useState(null);
   const [socket, setSocket] = useState(null);
   const [connected, setConnected] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -29,7 +28,7 @@ const OximeterVitals = ({
   const [hardwareConfigured, setHardwareConfigured] = useState(false);
   const [sensorErrorPrompt, setSensorErrorPrompt] = useState(false);
 
-  const fetchOximeter = async () => {
+  const fetchGlucose = async () => {
     const token = JSON.parse(localStorage.getItem("token"));
     if (!token || !token.access) return;
 
@@ -37,33 +36,29 @@ const OximeterVitals = ({
     setLoading(true);
 
     try {
-      console.log(userRole);
       const response = await axios.get(
         `http://127.0.0.1:8000/api/users/${userRole}vitals`,
         { headers }
       );
+
       if (Array.isArray(response.data) && response.data.length > 0) {
-        const spo2Data = response.data[0];
-        const heart_rateData = response.data[0];
-        if (
-          spo2Data.spo2 !== undefined &&
-          heart_rateData.heart_rate !== undefined
-        ) {
-          setHeart_Rate(heart_rateData.heart_rate);
-          setSPO2(spo2Data.spo2);
+        const glucoseData = response.data[0];
+        if (glucoseData.glucose_level !== undefined) {
+          setGlucose(glucoseData.glucose_level);
         } else {
-          console.error(
-            "Spo2 and Heart Rate fields are missing from the response."
-          );
+          console.error("Glucose field is missing from the response.");
         }
       } else {
-        console.error(
-          "Spo2 or Heart Rate data is missing or not in the expected format."
-        );
+        console.error("Response data is not in the expected format.");
       }
     } catch (error) {
+      console.error(
+        `Error fetching glucose: ${
+          error.response?.data?.detail || error.message
+        }`
+      );
       toast.error(
-        `Error fetching Oximeter Vitals: ${
+        `Error fetching glucose: ${
           error.response?.data?.detail || error.message
         }`
       );
@@ -96,12 +91,9 @@ const OximeterVitals = ({
         newSocket.send(JSON.stringify({ message: "Hi" }));
         console.log("Sent 'Hi' to server");
 
-        // Clear any previous timeout to avoid duplicates
         if (hiResponseTimeout) clearTimeout(hiResponseTimeout);
-
-        // Set a 10-second timeout to check for the response
         hiResponseTimeout = setTimeout(() => {
-          disconnectSocket(); // Optionally disconnect if no response
+          disconnectSocket();
         }, 10000); // 10 seconds
       }
     };
@@ -111,7 +103,6 @@ const OximeterVitals = ({
       setConnected(true);
       toast.success("Connected to WebSocket!");
 
-      // Send initial "Hi" message and set up interval to send every 1.5 minutes
       sendHiMessage();
       hiInterval = setInterval(sendHiMessage, 90000); // 1.5 minutes
     };
@@ -120,7 +111,6 @@ const OximeterVitals = ({
       const data = JSON.parse(event.data);
       console.log("Received WebSocket data:", data);
 
-      // Clear timeout if we received the "Hi" response
       if (data.Status === "Hi") {
         clearTimeout(hiResponseTimeout);
         setStatusMessage("Hardware Configured");
@@ -128,7 +118,7 @@ const OximeterVitals = ({
         setSensorErrorPrompt(false);
       } else if (data.Status === "Sensor Initialized Successfully") {
         clearTimeout(hiResponseTimeout);
-        setStatusMessage("Oximeter Sensor Initialized");
+        setStatusMessage("Glucose Sensor Initialized");
         setSensorErrorPrompt(false);
       } else if (data.Status === "Sensor Initialization Failed") {
         clearTimeout(hiResponseTimeout);
@@ -139,14 +129,14 @@ const OximeterVitals = ({
         clearTimeout(hiResponseTimeout);
         setStatusMessage("Reading Complete");
         setSensorErrorPrompt(false);
-        fetchOximeter();
+        fetchGlucose();
       } else if (data.Status === "Calculating") {
         clearTimeout(hiResponseTimeout);
         setStatusMessage("Calculating");
         setSensorErrorPrompt(false);
       } else if (data.Status === "Sensor Reading Failed") {
         clearTimeout(hiResponseTimeout);
-        setStatusMessage("Please place your Finger properly.");
+        setStatusMessage("Sensor Reading Failed");
         setSensorErrorPrompt(true);
       }
     };
@@ -169,15 +159,14 @@ const OximeterVitals = ({
 
     setSocket(newSocket);
   };
-  const requestOximeter = () => {
+
+  const requestGlucose = () => {
     if (socket && hardwareConfigured) {
-      socket.send(JSON.stringify({ message: "Oximeter" }));
-      toast.info("Requesting Oximeter Vitals...");
+      socket.send(JSON.stringify({ message: "Glucose" }));
+      toast.info("Requesting glucose...");
       setLoading(true);
     } else {
-      toast.warn(
-        "Cannot request Oximeter Vitals. Ensure the hardware is configured."
-      );
+      toast.warn("Cannot request glucose. Ensure the hardware is configured.");
     }
   };
 
@@ -208,8 +197,7 @@ const OximeterVitals = ({
     setDeviceId("");
     setConnected(false);
     setLoading(false);
-    setHeart_Rate(null);
-    setSPO2(null);
+    setGlucose(null);
     setStatusMessage("");
     setHardwareConfigured(false);
     setSensorErrorPrompt(false);
@@ -217,7 +205,7 @@ const OximeterVitals = ({
 
   const handleRetry = () => {
     if (socket) {
-      socket.send(JSON.stringify({ message: "Oximeter" }));
+      socket.send(JSON.stringify({ message: "Glucose" }));
       setSensorErrorPrompt(false);
       setLoading(true);
     }
@@ -227,8 +215,7 @@ const OximeterVitals = ({
     setSensorErrorPrompt(false);
     setStatusMessage("");
     setLoading(false);
-    setHeart_Rate(null);
-    setSPO2(null);
+    setGlucose(null);
   };
 
   useEffect(() => {
@@ -247,12 +234,17 @@ const OximeterVitals = ({
         textColor = "text-green-800";
         Icon = FaCheckCircle;
         break;
-      case "Oximeter Sensor Initialized":
+      case "Glucose Sensor Initialized":
         bgColor = "bg-green-100 border-l-4 border-green-500";
         textColor = "text-green-800";
         Icon = FaCheckCircle;
         break;
       case "Sensor Initialization Failed":
+      case "Sensor Reading Failed":
+        bgColor = "bg-red-100 border-l-4 border-red-500";
+        textColor = "text-red-800";
+        Icon = FaTimesCircle;
+        break;
       case "Reading Complete":
         bgColor = "bg-blue-100 border-l-4 border-blue-500";
         textColor = "text-blue-800";
@@ -263,10 +255,10 @@ const OximeterVitals = ({
         textColor = "text-yellow-800";
         Icon = FaInfoCircle;
         break;
-      case "Please place your Finger properly.":
-        bgColor = "bg-red-100 border-l-4 border-red-500";
-        textColor = "text-red-800";
-        Icon = FaTimesCircle;
+      case "Please place your finger properly.":
+        bgColor = "bg-orange-100 border-l-4 border-orange-500";
+        textColor = "text-orange-800";
+        Icon = FaExclamationTriangle;
         break;
       default:
         bgColor = "bg-gray-100 border-l-4 border-gray-500";
@@ -287,7 +279,6 @@ const OximeterVitals = ({
 
   return (
     <div className="p-6 bg-white shadow-md rounded-lg">
-      {/* Indicator for hardware configured state */}
       <div className="flex justify-center mb-4">
         <div
           className={`w-4 h-4 rounded-full ${
@@ -296,7 +287,7 @@ const OximeterVitals = ({
         ></div>
       </div>
       <h1 className="text-3xl font-semibold mb-6 text-gray-800">
-        Calculate Your Spo2 and Heart Rate
+        Calculate Your Glucose Levels
       </h1>
       {!profileExists ? (
         <p className="text-lg text-gray-600">
@@ -327,7 +318,7 @@ const OximeterVitals = ({
               Collect Vitals:
             </h2>
             <button
-              onClick={requestOximeter}
+              onClick={requestGlucose}
               disabled={!connected || loading || !hardwareConfigured}
               className={`mt-2 py-2 px-6 rounded-md shadow-md transition duration-300 text-white ${
                 !connected || loading || !hardwareConfigured
@@ -338,7 +329,7 @@ const OximeterVitals = ({
               {loading ? (
                 <ClipLoader color="#fff" size={20} />
               ) : (
-                "Request Oximeter"
+                "Request Glucose"
               )}
             </button>
           </div>
@@ -349,24 +340,23 @@ const OximeterVitals = ({
             <div className="mt-4 flex">
               <button
                 onClick={handleRetry}
-                className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-md mr-2 shadow-md transition duration-300"
+                className="bg-green-500 text-white font-bold py-2 px-4 rounded mr-4"
               >
                 Retry
               </button>
               <button
                 onClick={handleSkip}
-                className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md shadow-md transition duration-300"
+                className="bg-yellow-500 text-white font-bold py-2 px-4 rounded"
               >
                 Skip
               </button>
             </div>
           )}
 
-          {heart_rate && spo2 && (
+          {glucose && (
             <p className="mt-6 text-lg text-gray-800">
-              Heart Rate:{" "}
-              <span className="font-bold text-blue-600">{heart_rate} bpm </span>
-              Spo2: <span className="font-bold text-blue-600"> {spo2} %</span>
+              Glucose:{" "}
+              <span className="font-bold text-blue-600">{glucose} mg/dl</span>
             </p>
           )}
         </>
@@ -375,4 +365,4 @@ const OximeterVitals = ({
   );
 };
 
-export default OximeterVitals;
+export default GlucoseVitals;
