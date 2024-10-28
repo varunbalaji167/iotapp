@@ -49,6 +49,104 @@ class LoginView(generics.GenericAPIView):
         return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
 
 
+from django.http import JsonResponse
+from rest_framework.decorators import api_view
+from .iotutils import create, recog, set_user
+import cv2
+
+# Camera Class for Face Recognition
+class Camera:
+    def __init__(self):
+        self.video = cv2.VideoCapture(0)  # Use default camera
+
+    def __del__(self):
+        self.video.release()
+
+    def get_frame(self):
+        ret, frame = self.video.read()
+        return ret, frame
+
+
+# # Face Authentication View
+# @api_view(['POST'])
+# def face_authentication_view(request):
+#     try:
+#         # Load face encodings
+#         data = create()
+        
+#         # Initialize the camera and recognize the face
+#         camera = Camera()
+#         recognized_user = recog(data, camera=camera)
+
+#         # Set the authenticated user based on recognition result
+#         auth = set_user(recognized_user)  # Ensure this function accepts recognized_user as an argument
+
+#         if auth.get("Registered") == recognized_user:
+#             user = CustomUser.objects.get(username=recognized_user)  # Get the user object
+
+#             # Generate tokens for the user
+#             refresh = RefreshToken.for_user(user)
+
+#             return JsonResponse({
+#                 "face_auth": "Success",
+#                 "user": {
+#                     "username": user.username,
+#                     "email": user.email,  # Include any other user fields you want to return
+#                 },
+#                 "token": {
+#                     "access": str(refresh.access_token),
+#                     "refresh": str(refresh),
+#                 },
+#             }, status=200)
+#         else:
+#             return JsonResponse({"face_auth": "Failed", "error": "No Match Found"}, status=401)
+
+#     except CustomUser.DoesNotExist:
+#         return JsonResponse({"face_auth": "Failed", "error": "User does not exist"}, status=404)
+#     except Exception as e:
+#         return JsonResponse({"face_auth": "Failed", "error": str(e)}, status=500)    
+
+@api_view(['POST'])
+def face_authentication_view(request):
+    try:
+        print("Starting face authentication...")
+        data = create()
+        print("Face encodings loaded.")
+
+        camera = Camera()
+        recognized_user = recog(data, camera=camera)
+        print(f"Recognized user: {recognized_user}")
+
+        auth = set_user(recognized_user)
+        print(f"Auth result: {auth}")
+
+        if auth.get("Registered") == recognized_user:
+            user = CustomUser.objects.get(username=recognized_user)  # Ensure this is valid
+            print(f"User found: {user.username}")
+
+            refresh = RefreshToken.for_user(user)
+
+            return JsonResponse({
+                "face_auth": "Success",
+                "user": {
+                    "username": user.username,
+                    "email": user.email,
+                    "role": user.role,
+                },
+                "token": {
+                    "access": str(refresh.access_token),
+                    "refresh": str(refresh),
+                },
+            }, status=200)
+        else:
+            return JsonResponse({"face_auth": "Failed", "error": "No Match Found"}, status=401)
+
+    except CustomUser.DoesNotExist:
+        return JsonResponse({"face_auth": "Failed", "error": "User does not exist"}, status=404)
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return JsonResponse({"face_auth": "Failed", "error": str(e)}, status=500)
+    
 class UserProfileView(APIView):
     """
     Base view for user profiles (patient/doctor).

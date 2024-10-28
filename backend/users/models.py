@@ -13,6 +13,13 @@ def generate_unique_id(prefix):
     """Generate a unique ID in the format: prefix + 5 random digits."""
     return f"{prefix}{''.join(random.choices(string.digits, k=5))}"
 
+def user_profile_picture_path(instance, filename):
+    """
+    Generate file path for new profile picture in the format:
+    uusername/filename
+    """
+    return f"{instance.user.username}/{filename}"
+
 
 class CustomUser(AbstractUser):
     # Django AbstractUser already provides id(autofield,If no other primary key is defined, Django automatically adds an id field as primary key.),username,first_name,last_name,email,password fields
@@ -46,7 +53,6 @@ class CustomUser(AbstractUser):
 
 
 class PatientProfile(models.Model):
-    # Has a one-to-one relationship with the CustomUser model via the unique_id.
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, to_field="unique_id"
     )
@@ -56,7 +62,7 @@ class PatientProfile(models.Model):
     height = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     profile_picture = models.ImageField(
-        upload_to="profile_pics/", null=True, blank=True
+        upload_to=user_profile_picture_path, null=True, blank=True
     )
 
     def __str__(self):
@@ -92,7 +98,7 @@ class DoctorProfile(models.Model):
     specialization = models.CharField(max_length=100, null=True, blank=True)
     experience = models.PositiveIntegerField(null=True, blank=True)
     profile_picture = models.ImageField(
-        upload_to="profile_pics/", null=True, blank=True
+        upload_to=user_profile_picture_path, null=True, blank=True
     )
 
     def __str__(self):

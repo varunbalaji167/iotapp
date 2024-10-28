@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom"; // Import useNavigate
 import axios from "axios";
 import { FaUser, FaLock, FaEye, FaEyeSlash } from "react-icons/fa"; // Importing icons
 import Swal from "sweetalert2"; // Import SweetAlert2
+import { Link, useLocation } from "react-router-dom";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -132,6 +133,7 @@ const Login = () => {
               Register here
             </button>
           </div>
+          <Link to="/face" className="text-blue-600 font-semibold hover:underline">Use Face Auth</Link>
         </div>
       </div>
     </div>

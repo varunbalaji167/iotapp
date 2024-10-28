@@ -13,6 +13,7 @@ import "react-toastify/dist/ReactToastify.css"; // Import styles
 import PatientRecords from "./components/Doctor/PatientRecords";
 import DoctorVitalsHistory from "./components/Doctor/DoctorVitalsHistory";
 import PatientVitalsHistory from  "./components/Patient/PatientVitalsHistory";
+import FaceAuth from "./components/Auth/FaceAuth";
 
 const App = () => {
   return (
@@ -21,6 +22,7 @@ const App = () => {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/face" element={<FaceAuth />} />
           
           <Route
             path="/admin"
