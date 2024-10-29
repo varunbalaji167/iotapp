@@ -1,4 +1,3 @@
-// src/components/Register.jsx
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -31,13 +30,10 @@ const Register = () => {
         icon: "error",
         title: "Oops...",
         text: "Passwords do not match!",
-        timer: 2500, // Auto close after 2.5 seconds
+        timer: 2500,
         showConfirmButton: false,
         toast: true,
-        position: "top-end", // Position it at the top right
-        customClass: {
-          popup: "alert-box", // You can add a custom class for additional styling
-        },
+        position: "top-end",
       });
       return;
     }
@@ -53,38 +49,55 @@ const Register = () => {
           role,
         }
       );
-      console.log("Registration successful", response.data);
 
       Swal.fire({
         icon: "success",
         title: "Registration Successful",
         text: "You can now log in!",
-        timer: 1500, // Auto close after 1.5 seconds
+        timer: 1500,
         showConfirmButton: false,
         toast: true,
         position: "top-end",
-        customClass: {
-          popup: "alert-box",
-        },
       });
 
       navigate("/login");
     } catch (error) {
       console.error("Error registering user", error.response?.data);
-      Swal.fire({
-        icon: "error",
-        title: "Error!",
-        text:
-          error.response?.data?.detail ||
-          "Registration failed. Please try again.",
-        timer: 2500, // Auto close after 2.5 seconds
-        showConfirmButton: false,
-        toast: true,
-        position: "top-end",
-        customClass: {
-          popup: "alert-box",
-        },
-      });
+
+      // Check if the error is due to username or email already existing
+      if (error.response?.data?.username) {
+        Swal.fire({
+          icon: "error",
+          title: "Error!",
+          text: "A User with same username already exists.",
+          timer: 2500,
+          showConfirmButton: false,
+          toast: true,
+          position: "top-end",
+        });
+      } else if (error.response?.data?.email) {
+        Swal.fire({
+          icon: "error",
+          title: "Error!",
+          text: "A User with same Email already exists.",
+          timer: 2500,
+          showConfirmButton: false,
+          toast: true,
+          position: "top-end",
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error!",
+          text:
+            error.response?.data?.detail ||
+            "Registration failed. Please try again.",
+          timer: 2500,
+          showConfirmButton: false,
+          toast: true,
+          position: "top-end",
+        });
+      }
     }
   };
 

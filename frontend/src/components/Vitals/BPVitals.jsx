@@ -149,7 +149,7 @@ const BPVitals = ({
         setSensorErrorPrompt(false);
       } else if (data.Status === "Sensor Reading Failed") {
         clearTimeout(hiResponseTimeout);
-        setStatusMessage("Please place your Finger properly.");
+        setStatusMessage("Please wear your BP Cuff Properly and place your Wrist at Heart Level");
         setSensorErrorPrompt(true);
       }
     };
@@ -268,7 +268,7 @@ const BPVitals = ({
         textColor = "text-yellow-800";
         Icon = FaInfoCircle;
         break;
-      case "Please place your Finger properly.":
+      case "Please wear your BP Cuff Properly and place your Wrist at Heart Level":
         bgColor = "bg-red-100 border-l-4 border-red-500";
         textColor = "text-red-800";
         Icon = FaTimesCircle;

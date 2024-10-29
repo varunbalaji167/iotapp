@@ -158,6 +158,7 @@ class VitalDataConsumer(AsyncWebsocketConsumer):
     async def bp_message(self, event):
         """Handle bp messages received in the bp group."""
         message = event["message"]
+        print(f"Received message: {message}")
         message_data = json.loads(message)
 
         status = message_data.get("Status")

@@ -1,6 +1,13 @@
 from datetime import timedelta
 from pathlib import Path
 import os
+import environ
+
+env = environ.Env()
+environ.Env.read_env()  # Read the .env file
+
+# Set default settings module
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', env('DJANGO_SETTINGS_MODULE'))
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

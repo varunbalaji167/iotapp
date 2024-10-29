@@ -49,6 +49,8 @@ class CustomUser(AbstractUser):
                 self.unique_id = generate_unique_id("ABU")
             elif self.role == "doctor":
                 self.unique_id = generate_unique_id("ABD")
+            elif self.role == "admin":
+                self.unique_id = generate_unique_id("ABA")    
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -220,8 +222,13 @@ class VitalHistoryDoctor(models.Model):
 
 
 class Devices(models.Model):
+    DEVICE_TYPE_CHOICES = [
+        ('Stationary', 'Stationary'),
+        ('Portable', 'Portable'),
+    ]
+
     device_id = models.CharField(max_length=100, unique=True)
-    device_type = models.CharField(max_length=50)
+    device_type = models.CharField(max_length=50, choices=DEVICE_TYPE_CHOICES)
     owner_name = models.CharField(max_length=100)
     owner_phone = models.CharField(max_length=15)
 
