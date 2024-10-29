@@ -4,20 +4,23 @@ from asgiref.sync import sync_to_async
 from decimal import Decimal
 from django.utils import timezone
 from channels.exceptions import DenyConnection
-from .models import DoctorData, PatientData,VitalHistoryPatient,VitalHistoryDoctor
+from .models import DoctorData, PatientData, VitalHistoryPatient, VitalHistoryDoctor
 from users.mqtt_client import setup_mqtt_client
 from rest_framework_simplejwt.tokens import UntypedToken
 from rest_framework_simplejwt.exceptions import InvalidToken
 from django.contrib.auth import get_user_model
+
 subject_group_mapping = {
     "Hardware Configuration Success": "hardware_group_",
     "Glucose": "glucose_group_",
     "Temperature": "temperature_group_",
-    "Oximeter": "oximeter_group_"
+    "Oximeter": "oximeter_group_",
+    "BP": "bp_group_",
 }
 User = get_user_model()
 
 active_device_connections = {}
+
 
 class VitalDataConsumer(AsyncWebsocketConsumer):
     def __init__(self):
@@ -26,8 +29,10 @@ class VitalDataConsumer(AsyncWebsocketConsumer):
         self.mqtt_client = None
 
     async def connect(self):
-        token = self.scope['query_string'].decode().split('=')[-1]  # Extract token
-        self.device_id = self.scope['query_string'].decode().split('&')[0].split('=')[-1]  # Extract device_id
+        token = self.scope["query_string"].decode().split("=")[-1]  # Extract token
+        self.device_id = (
+            self.scope["query_string"].decode().split("&")[0].split("=")[-1]
+        )  # Extract device_id
 
         try:
             validated_token = await self.get_validated_token(token)
@@ -39,14 +44,22 @@ class VitalDataConsumer(AsyncWebsocketConsumer):
                 # Check if the device ID is already in use
                 if self.device_id in active_device_connections:
                     # If the device is already in use, deny the connection
-                    await self.send(text_data=json.dumps({'error': 'Device is busy'}))
+                    await self.send(text_data=json.dumps({"error": "Device is busy"}))
                     raise DenyConnection("Device is already in use")
-                
+
                 # Register the new connection
                 active_device_connections[self.device_id] = self.channel_name
 
                 await self.accept()
-                await self.send(text_data=json.dumps({'status': 'connected', 'user': str(self.user), 'role': self.role}))
+                await self.send(
+                    text_data=json.dumps(
+                        {
+                            "status": "connected",
+                            "user": str(self.user),
+                            "role": self.role,
+                        }
+                    )
+                )
 
                 # Add the consumer to all subject groups based on the device_id
                 for subject, group_prefix in subject_group_mapping.items():
@@ -57,7 +70,7 @@ class VitalDataConsumer(AsyncWebsocketConsumer):
                 self.mqtt_client = setup_mqtt_client(self.device_id)
 
         except InvalidToken:
-            await self.send(text_data=json.dumps({'error': 'Invalid token'}))
+            await self.send(text_data=json.dumps({"error": "Invalid token"}))
             await self.close()
 
     async def disconnect(self, close_code):
@@ -74,96 +87,113 @@ class VitalDataConsumer(AsyncWebsocketConsumer):
                 group_name = f"{group_prefix}{self.device_id}"
                 await self.channel_layer.group_discard(group_name, self.channel_name)
 
-
-
-
     async def receive(self, text_data):
         """Handle WebSocket messages for subscribing/publishing topics."""
         text_data_json = json.loads(text_data)
         message_type = text_data_json.get("message")
-    
+
         if message_type:
-            
+
             # Publish the data to the dynamic MQTT topic based on device_id
             self.mqtt_client.publish(f"HK_Sub{self.device_id}", payload=message_type)
         else:
-            await self.send(text_data=json.dumps({'error': 'Invalid message type'}))
-    
+            await self.send(text_data=json.dumps({"error": "Invalid message type"}))
+
     async def temperature_message(self, event):
         """Handle temperature messages received in the temperature group."""
-        message = event['message']
+        message = event["message"]
         message_data = json.loads(message)
 
         status = message_data.get("Status")
         temperature = message_data.get("Temperature")
 
         if status and temperature:
-            await self.send(text_data=json.dumps({'Status': status}))
+            await self.send(text_data=json.dumps({"Status": status}))
             await self.save_temperature_to_db(temperature)
         else:
             await self.send(text_data=json.dumps(message_data))
 
     async def glucose_message(self, event):
         """Handle temperature messages received in the temperature group."""
-        message = event['message']
+        message = event["message"]
         message_data = json.loads(message)
 
-        glucose_level = message_data.get('Glucose')
+        glucose_level = message_data.get("Glucose")
         status = message_data.get("Status")
-        glucose_samples = message_data.get('Samples')
+        glucose_samples = message_data.get("Samples")
         if status and glucose_level and glucose_samples:
-            await self.send(text_data=json.dumps({'Status': status, 'Samples': glucose_samples}))
+            await self.send(
+                text_data=json.dumps({"Status": status, "Samples": glucose_samples})
+            )
             await self.save_glucose_to_db(glucose_level, glucose_samples)
         else:
             await self.send(text_data=json.dumps(message_data))
 
     async def oximeter_message(self, event):
         """Handle temperature messages received in the temperature group."""
-        message = event['message']
+        message = event["message"]
         message_data = json.loads(message)
 
         status = message_data.get("Status")
-        heart_rate= message_data.get("Heart_Rate")
+        heart_rate = message_data.get("Heart_Rate")
         spo2 = message_data.get("SPO2")
 
         if status and heart_rate and spo2:
-            await self.send(text_data=json.dumps({'Status': status}))
-            await self.save_oximeter_to_db(heart_rate,spo2)
+            await self.send(text_data=json.dumps({"Status": status}))
+            await self.save_oximeter_to_db(heart_rate, spo2)
         else:
             await self.send(text_data=json.dumps(message_data))
-    
+
     async def hardware_message(self, event):
         """Handle temperature messages received in the temperature group."""
-        message = event['message']
+        message = event["message"]
         message_data = json.loads(message)
 
         status = message_data.get("Status")
         # temperature = message_data.get("Temperature")
 
         # if status and temperature:
-        await self.send(text_data=json.dumps({'Status': status}))
-    
-    
+        await self.send(text_data=json.dumps({"Status": status}))
 
+    async def bp_message(self, event):
+        """Handle bp messages received in the bp group."""
+        message = event["message"]
+        message_data = json.loads(message)
 
+        status = message_data.get("Status")
+        heart_rate_bp = message_data.get("Heart_Rate")
+        sys = message_data.get("SYS")
+        dia = message_data.get("DIA")
+
+        if status and heart_rate_bp and sys and dia:
+            await self.send(text_data=json.dumps({"Status": status}))
+            await self.save_bp_to_db(heart_rate_bp, sys, dia)
+        else:
+            await self.send(text_data=json.dumps(message_data))
 
     @sync_to_async
     def save_temperature_to_db(self, temperature):
         """Save temperature data to the database based on the user role."""
-        if self.role == 'doctor':
+        if self.role == "doctor":
             doctor_profile = self.user.doctorprofile
             doctor_data, created = DoctorData.objects.get_or_create(
                 doctor=doctor_profile,
-                defaults={'temperature': Decimal(temperature), 'created_at': timezone.now()}
+                defaults={
+                    "temperature": Decimal(temperature),
+                    "created_at": timezone.now(),
+                },
             )
             if not created:
                 doctor_data.temperature = Decimal(temperature)
                 doctor_data.save()
-        elif self.role == 'patient':
+        elif self.role == "patient":
             patient_profile = self.user.patientprofile
             patient_data, created = PatientData.objects.get_or_create(
                 patient=patient_profile,
-                defaults={'temperature': Decimal(temperature), 'created_at': timezone.now()}
+                defaults={
+                    "temperature": Decimal(temperature),
+                    "created_at": timezone.now(),
+                },
             )
             if not created:
                 patient_data.temperature = Decimal(temperature)
@@ -172,56 +202,115 @@ class VitalDataConsumer(AsyncWebsocketConsumer):
     @sync_to_async
     def save_glucose_to_db(self, glucose_level, glucose_samples):
         """Save glucose level and samples data to the database."""
-        if self.role == 'doctor':
+        if self.role == "doctor":
             doctor_profile = self.user.doctorprofile
             doctor_data, created = DoctorData.objects.get_or_create(
                 doctor=doctor_profile,
-                defaults={'glucose_level': Decimal(glucose_level), 'glucose_samples': glucose_samples, 'created_at': timezone.now()}
+                defaults={
+                    "glucose_level": Decimal(glucose_level),
+                    "glucose_samples": glucose_samples,
+                    "created_at": timezone.now(),
+                },
             )
             if not created:
                 doctor_data.glucose_level = Decimal(glucose_level)
-                doctor_data.glucose_samples = glucose_samples  # Update the samples array
+                doctor_data.glucose_samples = (
+                    glucose_samples  # Update the samples array
+                )
                 doctor_data.save()
-        elif self.role == 'patient':
+        elif self.role == "patient":
             patient_profile = self.user.patientprofile
             patient_data, created = PatientData.objects.get_or_create(
                 patient=patient_profile,
-                defaults={'glucose_level': Decimal(glucose_level), 'glucose_samples': glucose_samples, 'created_at': timezone.now()}
+                defaults={
+                    "glucose_level": Decimal(glucose_level),
+                    "glucose_samples": glucose_samples,
+                    "created_at": timezone.now(),
+                },
             )
             if not created:
                 patient_data.glucose_level = Decimal(glucose_level)
-                patient_data.glucose_samples = glucose_samples  # Update the samples array
+                patient_data.glucose_samples = (
+                    glucose_samples  # Update the samples array
+                )
                 patient_data.save()
 
     @sync_to_async
     def save_oximeter_to_db(self, heart_rate, spo2):
         """Save oximeter (heart rate and oxygen level) data to the database."""
-        if self.role == 'doctor':
+        if self.role == "doctor":
             doctor_profile = self.user.doctorprofile
             doctor_data, created = DoctorData.objects.get_or_create(
                 doctor=doctor_profile,
-                defaults={'heart_rate': Decimal(heart_rate), 'spo2': Decimal(spo2), 'created_at': timezone.now()}
+                defaults={
+                    "heart_rate": Decimal(heart_rate),
+                    "spo2": Decimal(spo2),
+                    "created_at": timezone.now(),
+                },
             )
             if not created:
                 doctor_data.heart_rate = Decimal(heart_rate)
                 doctor_data.spo2 = Decimal(spo2)
                 doctor_data.save()
-        elif self.role == 'patient':
+        elif self.role == "patient":
             patient_profile = self.user.patientprofile
             patient_data, created = PatientData.objects.get_or_create(
                 patient=patient_profile,
-                defaults={'heart_rate': Decimal(heart_rate), 'spo2': Decimal(spo2), 'created_at': timezone.now()}
+                defaults={
+                    "heart_rate": Decimal(heart_rate),
+                    "spo2": Decimal(spo2),
+                    "created_at": timezone.now(),
+                },
             )
             if not created:
                 patient_data.heart_rate = Decimal(heart_rate)
                 patient_data.spo2 = Decimal(spo2)
                 patient_data.save()
+
+    @sync_to_async
+    def save_bp_to_db(self, heart_rate_bp, sys, dia):
+        """Save bp (heart rate and sys,dia) data to the database."""
+        if self.role == "doctor":
+            doctor_profile = self.user.doctorprofile
+            doctor_data, created = DoctorData.objects.get_or_create(
+                doctor=doctor_profile,
+                defaults={
+                    "heart_rate_bp": Decimal(heart_rate_bp),
+                    "sys": Decimal(sys),
+                    "dia": Decimal(dia),
+                    "created_at": timezone.now(),
+                },
+            )
+            if not created:
+                doctor_data.heart_rate_bp = Decimal(heart_rate_bp)
+                doctor_data.sys = Decimal(sys)
+                doctor_data.dia = Decimal(dia)
+                doctor_data.save()
+        elif self.role == "patient":
+            patient_profile = self.user.patientprofile
+            patient_data, created = PatientData.objects.get_or_create(
+                patient=patient_profile,
+                defaults={
+                    "heart_rate_bp": Decimal(heart_rate_bp),
+                    "sys": Decimal(sys),
+                    "dia": Decimal(dia),
+                    "created_at": timezone.now(),
+                },
+            )
+            if not created:
+                patient_data.heart_rate_bp = Decimal(heart_rate_bp)
+                patient_data.sys = Decimal(sys)
+                patient_data.dia = Decimal(dia)
+                patient_data.save()
+
     @sync_to_async
     def save_vitals_to_history(self):
         """Save the current vitals to VitalHistory before disconnecting."""
-        if self.role == 'doctor':
+        if self.role == "doctor":
             doctor_profile = self.user.doctorprofile
-            doctor_data = DoctorData.objects.filter(doctor=doctor_profile).latest('created_at')
+            doctor_data = DoctorData.objects.filter(doctor=doctor_profile).latest(
+                "created_at"
+            )
             VitalHistoryDoctor.objects.create(
                 doctor=doctor_profile,
                 temperature=doctor_data.temperature,
@@ -229,10 +318,15 @@ class VitalDataConsumer(AsyncWebsocketConsumer):
                 glucose_samples=doctor_data.glucose_samples,
                 heart_rate=doctor_data.heart_rate,
                 spo2=doctor_data.spo2,
+                heart_rate_bp=doctor_data.heart_rate_bp,
+                sys=doctor_data.sys,
+                dia=doctor_data.dia,
             )
-        elif self.role == 'patient':
+        elif self.role == "patient":
             patient_profile = self.user.patientprofile
-            patient_data = PatientData.objects.filter(patient=patient_profile).latest('created_at')
+            patient_data = PatientData.objects.filter(patient=patient_profile).latest(
+                "created_at"
+            )
             VitalHistoryPatient.objects.create(
                 patient=patient_profile,
                 temperature=patient_data.temperature,
@@ -240,8 +334,10 @@ class VitalDataConsumer(AsyncWebsocketConsumer):
                 glucose_samples=patient_data.glucose_samples,
                 heart_rate=patient_data.heart_rate,
                 spo2=patient_data.spo2,
+                heart_rate_bp=patient_data.heart_rate_bp,
+                sys=patient_data.sys,
+                dia=patient_data.dia,
             )
-
 
     @sync_to_async
     def get_validated_token(self, token):
@@ -249,12 +345,12 @@ class VitalDataConsumer(AsyncWebsocketConsumer):
 
     @sync_to_async
     def get_user_from_token(self, validated_token):
-        return User.objects.get(id=validated_token['user_id'])
+        return User.objects.get(id=validated_token["user_id"])
 
     @sync_to_async
     def get_user_role(self):
-        if hasattr(self.user, 'doctorprofile'):
+        if hasattr(self.user, "doctorprofile"):
             return "doctor"
-        elif hasattr(self.user, 'patientprofile'):
+        elif hasattr(self.user, "patientprofile"):
             return "patient"
         return "unknown"

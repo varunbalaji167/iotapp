@@ -104,7 +104,7 @@ const GlucoseVitals = ({
       toast.success("Connected to WebSocket!");
 
       sendHiMessage();
-      hiInterval = setInterval(sendHiMessage, 90000); // 1.5 minutes
+      hiInterval = setInterval(sendHiMessage, 45000); // 1.5 minutes
     };
 
     newSocket.onmessage = (event) => {

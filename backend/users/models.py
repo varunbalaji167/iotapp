@@ -8,10 +8,13 @@ from django.core.files.storage import default_storage
 import random
 import string
 from datetime import datetime
+
+
 # Function to generate unique ID
 def generate_unique_id(prefix):
     """Generate a unique ID in the format: prefix + 5 random digits."""
     return f"{prefix}{''.join(random.choices(string.digits, k=5))}"
+
 
 def user_profile_picture_path(instance, filename):
     """
@@ -125,44 +128,95 @@ def delete_user_profile(sender, instance, **kwargs):
 
 
 class DoctorData(models.Model):
-    doctor = models.ForeignKey(DoctorProfile, on_delete=models.CASCADE, related_name="vitals")
-    temperature = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    glucose_level = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    doctor = models.ForeignKey(
+        DoctorProfile, on_delete=models.CASCADE, related_name="vitals"
+    )
+    temperature = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True
+    )
+    glucose_level = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True
+    )
     glucose_samples = models.JSONField(null=True, blank=True)  # Store samples as JSON
-    oxygen_level = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    heart_rate = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    heart_rate = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True
+    )
     spo2 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    heart_rate_bp = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True
+    )
+    sys = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    dia = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+
 
 class PatientData(models.Model):
-    patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE, related_name="vitals")
-    temperature = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    glucose_level = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    patient = models.ForeignKey(
+        PatientProfile, on_delete=models.CASCADE, related_name="vitals"
+    )
+    temperature = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True
+    )
+    glucose_level = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True
+    )
     glucose_samples = models.JSONField(null=True, blank=True)  # Store samples as JSON
-    oxygen_level = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    heart_rate = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    heart_rate = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True
+    )
     spo2 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    heart_rate_bp = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True
+    )
+    sys = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    dia = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+
 
 class VitalHistoryPatient(models.Model):
-    patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE, related_name="vital_history")
-    temperature = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    glucose_level = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    patient = models.ForeignKey(
+        PatientProfile, on_delete=models.CASCADE, related_name="vital_history"
+    )
+    temperature = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True
+    )
+    glucose_level = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True
+    )
     glucose_samples = models.JSONField(null=True, blank=True)
-    oxygen_level = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    heart_rate = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    heart_rate = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True
+    )
     spo2 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     recorded_at = models.DateTimeField(auto_now_add=True)
+    heart_rate_bp = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True
+    )
+    sys = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    dia = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+
 
 class VitalHistoryDoctor(models.Model):
-    doctor = models.ForeignKey(DoctorProfile, on_delete=models.CASCADE, related_name="vital_history")
-    temperature = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    glucose_level = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    doctor = models.ForeignKey(
+        DoctorProfile, on_delete=models.CASCADE, related_name="vital_history"
+    )
+    temperature = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True
+    )
+    glucose_level = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True
+    )
     glucose_samples = models.JSONField(null=True, blank=True)
-    oxygen_level = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    heart_rate = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    heart_rate = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True
+    )
     spo2 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     recorded_at = models.DateTimeField(auto_now_add=True)
+    heart_rate_bp = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True
+    )
+    sys = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    dia = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
 
 
 class Devices(models.Model):
@@ -173,4 +227,3 @@ class Devices(models.Model):
 
     def __str__(self):
         return f"{self.device_type} - {self.device_id} owned by {self.owner_name}"
-    

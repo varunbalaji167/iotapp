@@ -11,7 +11,7 @@ import {
 } from "react-icons/fa";
 import ClipLoader from "react-spinners/ClipLoader";
 
-const TempVitals = ({
+const BPVitals = ({
   setDeviceId,
   deviceId,
   profileExists,
@@ -20,7 +20,9 @@ const TempVitals = ({
   setDevice,
 }) => {
   const { userRole } = useAuth();
-  const [temperature, setTemperature] = useState(null);
+  const [sys, setSys] = useState(null);
+  const [dia, setDia] = useState(null);
+  const [heart_rate_bp, setHeartRateBP] = useState(null);
   const [socket, setSocket] = useState(null);
   const [connected, setConnected] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -28,7 +30,7 @@ const TempVitals = ({
   const [hardwareConfigured, setHardwareConfigured] = useState(false);
   const [sensorErrorPrompt, setSensorErrorPrompt] = useState(false);
 
-  const fetchTemperature = async () => {
+  const fetchBP = async () => {
     const token = JSON.parse(localStorage.getItem("token"));
     if (!token || !token.access) return;
 
@@ -43,23 +45,30 @@ const TempVitals = ({
       );
 
       if (Array.isArray(response.data) && response.data.length > 0) {
-        const temperatureData = response.data[0];
-        if (temperatureData.temperature !== undefined) {
-          setTemperature(temperatureData.temperature);
+        const sysData = response.data[0];
+        const diaData = response.data[0];
+        const heart_rate_bpData = response.data[0];
+        if (
+          sysData.sys !== undefined &&
+          diaData.dia !== undefined &&
+          heart_rate_bpData.heart_rate_bp !== undefined
+        ) {
+          setHeartRateBP(heart_rate_bpData.heart_rate_bp);
+          setSys(sysData.sys);
+          setDia(diaData.dia);
         } else {
-          console.error("Temperature field is missing from the response.");
+          console.error(
+            "Systolic,Diastolic Bp and Heart Rate fields are missing from the response."
+          );
         }
       } else {
-        console.error("Response data is not in the expected format.");
+        console.error(
+          "Systolic or Diastolic Bp or Heart Rate is missing or not in the expected format."
+        );
       }
     } catch (error) {
-      console.error(
-        `Error fetching temperature: ${
-          error.response?.data?.detail || error.message
-        }`
-      );
       toast.error(
-        `Error fetching temperature: ${
+        `Error fetching BP Vitals: ${
           error.response?.data?.detail || error.message
         }`
       );
@@ -83,7 +92,6 @@ const TempVitals = ({
     const newSocket = new WebSocket(
       `ws://127.0.0.1:8000/ws/vitals/?device_id=${deviceId}&token=${token.access}`
     );
-
     let hiResponseTimeout;
     let hiInterval;
 
@@ -109,13 +117,12 @@ const TempVitals = ({
 
       // Send initial "Hi" message and set up interval to send every 1.5 minutes
       sendHiMessage();
-      hiInterval = setInterval(sendHiMessage, 45000); // 1.5 minutes
+      hiInterval = setInterval(sendHiMessage, 90000); // 1.5 minutes
     };
 
     newSocket.onmessage = (event) => {
       const data = JSON.parse(event.data);
       console.log("Received WebSocket data:", data);
-
       // Clear timeout if we received the "Hi" response
       if (data.Status === "Hi") {
         clearTimeout(hiResponseTimeout);
@@ -124,7 +131,7 @@ const TempVitals = ({
         setSensorErrorPrompt(false);
       } else if (data.Status === "Sensor Initialized Successfully") {
         clearTimeout(hiResponseTimeout);
-        setStatusMessage("Temperature Sensor Initialized");
+        setStatusMessage("BP Sensor Initialized");
         setSensorErrorPrompt(false);
       } else if (data.Status === "Sensor Initialization Failed") {
         clearTimeout(hiResponseTimeout);
@@ -135,14 +142,14 @@ const TempVitals = ({
         clearTimeout(hiResponseTimeout);
         setStatusMessage("Reading Complete");
         setSensorErrorPrompt(false);
-        fetchTemperature();
+        fetchBP();
       } else if (data.Status === "Calculating") {
         clearTimeout(hiResponseTimeout);
         setStatusMessage("Calculating");
         setSensorErrorPrompt(false);
       } else if (data.Status === "Sensor Reading Failed") {
         clearTimeout(hiResponseTimeout);
-        setStatusMessage("Sensor Reading Failed");
+        setStatusMessage("Please place your Finger properly.");
         setSensorErrorPrompt(true);
       }
     };
@@ -165,15 +172,14 @@ const TempVitals = ({
 
     setSocket(newSocket);
   };
-
-  const requestTemperature = () => {
+  const requestBP = () => {
     if (socket && hardwareConfigured) {
-      socket.send(JSON.stringify({ message: "Temperature" }));
-      toast.info("Requesting temperature...");
+      socket.send(JSON.stringify({ message: "BP" }));
+      toast.info("Requesting BP Vitals...");
       setLoading(true);
     } else {
       toast.warn(
-        "Cannot request temperature. Ensure the hardware is configured."
+        "Cannot request BP Vitals. Ensure the hardware is configured."
       );
     }
   };
@@ -205,7 +211,9 @@ const TempVitals = ({
     setDeviceId("");
     setConnected(false);
     setLoading(false);
-    setTemperature(null);
+    setHeartRateBP(null);
+    setSys(null);
+    setDia(null);
     setStatusMessage("");
     setHardwareConfigured(false);
     setSensorErrorPrompt(false);
@@ -213,7 +221,7 @@ const TempVitals = ({
 
   const handleRetry = () => {
     if (socket) {
-      socket.send(JSON.stringify({ message: "Temperature" }));
+      socket.send(JSON.stringify({ message: "BP" }));
       setSensorErrorPrompt(false);
       setLoading(true);
     }
@@ -223,7 +231,9 @@ const TempVitals = ({
     setSensorErrorPrompt(false);
     setStatusMessage("");
     setLoading(false);
-    setTemperature(null);
+    setHeartRateBP(null);
+    setSys(null);
+    setDia(null);
   };
 
   useEffect(() => {
@@ -242,17 +252,12 @@ const TempVitals = ({
         textColor = "text-green-800";
         Icon = FaCheckCircle;
         break;
-      case "Temperature Sensor Initialized":
+      case "BP Sensor Initialized":
         bgColor = "bg-green-100 border-l-4 border-green-500";
         textColor = "text-green-800";
         Icon = FaCheckCircle;
         break;
       case "Sensor Initialization Failed":
-      case "Sensor Reading Failed":
-        bgColor = "bg-red-100 border-l-4 border-red-500";
-        textColor = "text-red-800";
-        Icon = FaTimesCircle;
-        break;
       case "Reading Complete":
         bgColor = "bg-blue-100 border-l-4 border-blue-500";
         textColor = "text-blue-800";
@@ -263,10 +268,10 @@ const TempVitals = ({
         textColor = "text-yellow-800";
         Icon = FaInfoCircle;
         break;
-      case "Please place your finger properly.":
-        bgColor = "bg-orange-100 border-l-4 border-orange-500";
-        textColor = "text-orange-800";
-        Icon = FaExclamationTriangle;
+      case "Please place your Finger properly.":
+        bgColor = "bg-red-100 border-l-4 border-red-500";
+        textColor = "text-red-800";
+        Icon = FaTimesCircle;
         break;
       default:
         bgColor = "bg-gray-100 border-l-4 border-gray-500";
@@ -296,7 +301,7 @@ const TempVitals = ({
         ></div>
       </div>
       <h1 className="text-3xl font-semibold mb-6 text-gray-800">
-        Calculate Your Temperature
+        Calculate Your BP
       </h1>
       {!profileExists ? (
         <p className="text-lg text-gray-600">
@@ -327,7 +332,7 @@ const TempVitals = ({
               Collect Vitals:
             </h2>
             <button
-              onClick={requestTemperature}
+              onClick={requestBP}
               disabled={!connected || loading || !hardwareConfigured}
               className={`mt-2 py-2 px-6 rounded-md shadow-md transition duration-300 text-white ${
                 !connected || loading || !hardwareConfigured
@@ -335,11 +340,7 @@ const TempVitals = ({
                   : "bg-blue-500 hover:bg-blue-600"
               }`}
             >
-              {loading ? (
-                <ClipLoader color="#fff" size={20} />
-              ) : (
-                "Request Temperature"
-              )}
+              {loading ? <ClipLoader color="#fff" size={20} /> : "Request BP"}
             </button>
           </div>
 
@@ -362,10 +363,16 @@ const TempVitals = ({
             </div>
           )}
 
-          {temperature && (
+          {heart_rate_bp && sys && dia && (
             <p className="mt-6 text-lg text-gray-800">
-              Temperature:{" "}
-              <span className="font-bold text-blue-600">{temperature}°F</span>
+              Heart Rate:{" "}
+              <span className="font-bold text-blue-600">
+                {heart_rate_bp} bpm{" "}
+              </span>
+              Systolic BP:{" "}
+              <span className="font-bold text-blue-600"> {sys} (mmHg) </span>
+              Diastolic BP:{" "}
+              <span className="font-bold text-blue-600"> {dia} (mmHg) </span>
             </p>
           )}
         </>
@@ -374,4 +381,4 @@ const TempVitals = ({
   );
 };
 
-export default TempVitals;
+export default BPVitals;

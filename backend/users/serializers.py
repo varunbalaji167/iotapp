@@ -3,8 +3,9 @@
 # serializers are used by Django REST Framework (DRF) to handle API requests and responses
 from django.contrib.auth import authenticate
 from rest_framework import serializers
-from .models import CustomUser,PatientProfile,DoctorProfile,Devices
-from .models import DoctorData,PatientData, VitalHistoryPatient, VitalHistoryDoctor
+from .models import CustomUser, PatientProfile, DoctorProfile, Devices
+from .models import DoctorData, PatientData, VitalHistoryPatient, VitalHistoryDoctor
+
 
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -88,33 +89,74 @@ class DoctorProfileSerializer(serializers.ModelSerializer):
         model = DoctorProfile
         fields = "__all__"
 
+
 class PatientDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = PatientData
-        fields = ['temperature', 'glucose_level', 'glucose_samples', 'heart_rate', 'spo2', 'created_at']
+        fields = [
+            "temperature",
+            "glucose_level",
+            "glucose_samples",
+            "heart_rate",
+            "spo2",
+            "heart_rate_bp",
+            "sys",
+            "dia",
+            "created_at",
+        ]
+
 
 class DoctorDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = DoctorData
-        fields = ['temperature', 'glucose_level', 'glucose_samples', 'heart_rate', 'spo2', 'created_at']
+        fields = [
+            "temperature",
+            "glucose_level",
+            "glucose_samples",
+            "heart_rate",
+            "spo2",
+            "heart_rate_bp",
+            "sys",
+            "dia",
+            "created_at",
+        ]
+
 
 class DeviceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Devices
-        fields = ['device_id', 'device_type', 'owner_name', 'owner_phone']        
+        fields = ["device_id", "device_type", "owner_name", "owner_phone"]
+
 
 class VitalHistoryPatientSerializer(serializers.ModelSerializer):
     class Meta:
         model = VitalHistoryPatient
         fields = [
-            'id', 'temperature', 'glucose_level', 'glucose_samples',
-            'oxygen_level', 'heart_rate', 'spo2', 'recorded_at'
+            "id",
+            "temperature",
+            "glucose_level",
+            "glucose_samples",
+            "heart_rate",
+            "spo2",
+            "heart_rate_bp",
+            "sys",
+            "dia",
+            "recorded_at",
         ]
+
 
 class VitalHistoryDoctorSerializer(serializers.ModelSerializer):
     class Meta:
         model = VitalHistoryDoctor
         fields = [
-            'id', 'temperature', 'glucose_level', 'glucose_samples',
-            'oxygen_level', 'heart_rate', 'spo2', 'recorded_at'
+            "id",
+            "temperature",
+            "glucose_level",
+            "glucose_samples",
+            "heart_rate",
+            "spo2",
+            "heart_rate_bp",
+            "sys",
+            "dia",
+            "recorded_at",
         ]

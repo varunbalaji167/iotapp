@@ -113,7 +113,7 @@ const OximeterVitals = ({
 
       // Send initial "Hi" message and set up interval to send every 1.5 minutes
       sendHiMessage();
-      hiInterval = setInterval(sendHiMessage, 90000); // 1.5 minutes
+      hiInterval = setInterval(sendHiMessage, 60000); // 1.5 minutes
     };
 
     newSocket.onmessage = (event) => {

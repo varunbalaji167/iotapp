@@ -148,12 +148,13 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import axios from "axios";
-import {jwtDecode} from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import TempVitals from "../Vitals/TempVitals";
 import OximeterVitals from "../Vitals/OximeterVitals";
 import GlucoseVitals from "../Vitals/GlucoseVitals";
+import BPVitals from "../Vitals/BPVitals";
 
 const PatientVitals = () => {
   const { userRole } = useAuth();
@@ -180,9 +181,12 @@ const PatientVitals = () => {
     }
 
     try {
-      const response = await axios.post("http://127.0.0.1:8000/api/users/refresh/", {
-        refresh: refreshToken,
-      });
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/users/refresh/",
+        {
+          refresh: refreshToken,
+        }
+      );
 
       const newAccessToken = response.data.access;
       localStorage.setItem(
@@ -230,13 +234,19 @@ const PatientVitals = () => {
     const headers = { Authorization: "Bearer " + accessToken };
 
     try {
-      await axios.get("http://127.0.0.1:8000/api/users/patientprofile/", { headers });
+      await axios.get("http://127.0.0.1:8000/api/users/patientprofile/", {
+        headers,
+      });
       setProfileExists(true);
     } catch (error) {
       if (error.response?.status === 404) {
         setProfileExists(false);
       } else {
-        toast.error(`Error checking profile: ${error.response?.data?.detail || error.message}`);
+        toast.error(
+          `Error checking profile: ${
+            error.response?.data?.detail || error.message
+          }`
+        );
       }
     }
   };
@@ -245,10 +255,17 @@ const PatientVitals = () => {
     const headers = { Authorization: "Bearer " + accessToken };
 
     try {
-      const response = await axios.get("http://127.0.0.1:8000/api/users/devices/", { headers });
+      const response = await axios.get(
+        "http://127.0.0.1:8000/api/users/devices/",
+        { headers }
+      );
       setDevices(response.data);
     } catch (error) {
-      toast.error(`Error fetching devices: ${error.response?.data?.detail || error.message}`);
+      toast.error(
+        `Error fetching devices: ${
+          error.response?.data?.detail || error.message
+        }`
+      );
     }
   };
 
@@ -327,6 +344,16 @@ const PatientVitals = () => {
             </div>
             <div className="p-4 md:p-6 lg:p-8 bg-gray-50 rounded-lg shadow transition hover:shadow-lg mb-6">
               <GlucoseVitals
+                deviceId={deviceId}
+                profileExists={profileExists}
+                devices={devices}
+                setProfileExists={setProfileExists}
+                setDeviceId={setDeviceId}
+                setDevices={setDevices}
+              />
+            </div>
+            <div className="p-4 md:p-6 lg:p-8 bg-gray-50 rounded-lg shadow transition hover:shadow-lg mb-6">
+              <BPVitals
                 deviceId={deviceId}
                 profileExists={profileExists}
                 devices={devices}

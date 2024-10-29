@@ -14,8 +14,14 @@ import {
   Legend,
 } from "chart.js";
 import DoctorNavbar from "./DoctorNavbar";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faThermometerHalf, faHeartbeat, faTint, faVial, faLungs } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faThermometerHalf,
+  faHeartbeat,
+  faTint,
+  faVial,
+  faLungs,
+} from "@fortawesome/free-solid-svg-icons";
 
 ChartJS.register(
   CategoryScale,
@@ -37,9 +43,10 @@ const DoctorVitalsHistory = () => {
   const [selectedFilters, setSelectedFilters] = useState({
     temperature: { date: today, filterType: "date" },
     glucose_level: { date: today, filterType: "date" },
-    oxygen_level: { date: today, filterType: "date" },
     heart_rate: { date: today, filterType: "date" },
     spo2: { date: today, filterType: "date" },
+    sys: { date: today, filterType: "date" },
+    dia: { date: today, filterType: "date" },
   });
 
   const fetchVitalHistory = async (accessToken) => {
@@ -196,8 +203,14 @@ const DoctorVitalsHistory = () => {
               icon: faVial,
             },
             {
-              key: "oxygen_level",
-              label: "Oxygen Level (%)",
+              key: "sys",
+              label: "Systolic BP (mmHg)",
+              borderColor: "rgba(75, 192, 192, 1)",
+              icon: faLungs,
+            },
+            {
+              key: "dia",
+              label: "Diastolic BP (mmHg)",
               borderColor: "rgba(75, 192, 192, 1)",
               icon: faLungs,
             },
@@ -212,8 +225,13 @@ const DoctorVitalsHistory = () => {
                 className="bg-white shadow-md rounded-lg p-4 flex flex-col transition-transform duration-300 ease-in-out hover:shadow-xl hover:scale-105 h-full"
               >
                 <div className="flex items-center mb-2">
-                  <FontAwesomeIcon icon={icon} className="text-2xl text-gray-600 mr-2" />
-                  <h3 className="text-xl font-semibold text-gray-800">{label}</h3>
+                  <FontAwesomeIcon
+                    icon={icon}
+                    className="text-2xl text-gray-600 mr-2"
+                  />
+                  <h3 className="text-xl font-semibold text-gray-800">
+                    {label}
+                  </h3>
                 </div>
                 {currentFilter.filterType === "date" && (
                   <input
