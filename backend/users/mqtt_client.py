@@ -22,6 +22,8 @@ subject_group_mapping = {
     "Temperature": "temperature_group_",
     "Oximeter": "oximeter_group_",
     "BP": "bp_group_",
+    "Height":"height_group_",
+    "Weight": "weight_group_",
 }
 
 
@@ -136,6 +138,76 @@ def on_message(client, userdata, msg):
                             "message": json.dumps({"Status": status}),
                         },
                     )
+
+            elif subject == "Height":
+                result = data.get("Result")
+                status = data.get("Status")
+                # If "Result" is "Success", send both "Status" and "Height" (or relevant fields for other subjects)
+                if result == "Success":
+                    height = data.get("Height")
+                    # Check if height exists for subjects like height, otherwise send Status only
+
+                    async_to_sync(channel_layer.group_send)(
+                        group_name,
+                        {
+                            "type": "height_message",
+                            "message": json.dumps(
+                                {"Status": status, "Height": height}
+                            ),
+                        },
+                    )
+                elif result == "Awaiting":
+                    async_to_sync(channel_layer.group_send)(
+                        group_name,
+                        {
+                            "type": "height_message",
+                            "message": json.dumps({"Status": status}),
+                        },
+                    )
+
+                elif result == "Failed":
+                    async_to_sync(channel_layer.group_send)(
+                        group_name,
+                        {
+                            "type": "height_message",
+                            "message": json.dumps({"Status": status}),
+                        },
+                    )     
+
+            elif subject == "Weight":
+                result = data.get("Result")
+                status = data.get("Status")
+                # If "Result" is "Success", send both "Status" and "Height" (or relevant fields for other subjects)
+                if result == "Success":
+                    weight = data.get("Weight")
+                    # Check if height exists for subjects like height, otherwise send Status only
+
+                    async_to_sync(channel_layer.group_send)(
+                        group_name,
+                        {
+                            "type": "weight_message",
+                            "message": json.dumps(
+                                {"Status": status, "Weight": weight}
+                            ),
+                        },
+                    )
+                elif result == "Awaiting":
+                    async_to_sync(channel_layer.group_send)(
+                        group_name,
+                        {
+                            "type": "weight_message",
+                            "message": json.dumps({"Status": status}),
+                        },
+                    )
+
+                elif result == "Failed":
+                    async_to_sync(channel_layer.group_send)(
+                        group_name,
+                        {
+                            "type": "weight_message",
+                            "message": json.dumps({"Status": status}),
+                        },
+                    )                
 
             elif subject == "Oximeter":
                 result = data.get("Result")

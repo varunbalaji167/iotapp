@@ -258,6 +258,10 @@ class DoctorDataView(APIView):
         doctor_profile = request.user.doctorprofile
         latest_vitals = DoctorData.objects.filter(doctor=doctor_profile).order_by('-created_at')
         serializer = DoctorDataSerializer(latest_vitals, many=True)
+        response_data = serializer.data
+        for item in response_data:
+            vital_data = DoctorData.objects.get(id=item['id'])
+            item['bmi'] = vital_data.calculate_bmi()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -268,6 +272,10 @@ class PatientDataView(APIView):
         patient_profile = get_object_or_404(PatientProfile, user=request.user)
         latest_vitals = PatientData.objects.filter(patient=patient_profile).order_by('-created_at')
         serializer = PatientDataSerializer(latest_vitals, many=True)
+        response_data = serializer.data
+        for item in response_data:
+            vital_data = PatientData.objects.get(id=item['id'])
+            item['bmi'] = vital_data.calculate_bmi()
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 class PatientVitalHistoryView(APIView):
@@ -290,29 +298,10 @@ class PatientVitalHistoryView(APIView):
         vital_records = VitalHistoryPatient.objects.filter(patient=patient_profile).order_by('-recorded_at')
         
         serializer = VitalHistoryPatientSerializer(vital_records, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
-
-class PatientVitalHistoryView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get(self, request):
-        # Check if the logged-in user is a patient
-        if request.user.role != 'patient':
-            return Response({"detail": "Unauthorized. Only patients can access this data."},
-                            status=status.HTTP_403_FORBIDDEN)
-
-        # Get the PatientProfile linked to the logged-in user
-        try:
-            patient_profile = PatientProfile.objects.get(user=request.user.unique_id)
-        except PatientProfile.DoesNotExist:
-            return Response({"detail": "Patient profile not found."},
-                            status=status.HTTP_404_NOT_FOUND)
-
-        # Filter vital records related to the logged-in patient's profile
-        vital_records = VitalHistoryPatient.objects.filter(patient=patient_profile).order_by('-recorded_at')
-        
-        serializer = VitalHistoryPatientSerializer(vital_records, many=True)
+        response_data = serializer.data
+        for item in response_data:
+            vital_data = VitalHistoryPatient.objects.get(id=item['id'])
+            item['bmi'] = vital_data.calculate_bmi()
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 
@@ -336,4 +325,8 @@ class DoctorVitalHistoryView(APIView):
         vital_records = VitalHistoryDoctor.objects.filter(doctor=doctor_profile).order_by('-recorded_at')
         
         serializer = VitalHistoryDoctorSerializer(vital_records, many=True)
+        response_data = serializer.data
+        for item in response_data:
+            vital_data = VitalHistoryDoctor.objects.get(id=item['id'])
+            item['bmi'] = vital_data.calculate_bmi()
         return Response(serializer.data, status=status.HTTP_200_OK)

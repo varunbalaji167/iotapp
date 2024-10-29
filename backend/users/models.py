@@ -64,8 +64,8 @@ class PatientProfile(models.Model):
     name = models.CharField(max_length=100, null=True, blank=True)
     dob = models.DateField(null=True, blank=True)
     blood_group = models.CharField(max_length=10, null=True, blank=True)
-    height = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    # height = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    # weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     profile_picture = models.ImageField(
         upload_to=user_profile_picture_path, null=True, blank=True
     )
@@ -150,6 +150,13 @@ class DoctorData(models.Model):
     )
     sys = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     dia = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    height = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    def calculate_bmi(self):
+        if self.height and self.weight:
+            height_in_m = self.height / 100  # Convert cm to meters
+            return round(self.weight / (height_in_m ** 2), 2)
+        return None
 
 
 class PatientData(models.Model):
@@ -173,6 +180,13 @@ class PatientData(models.Model):
     )
     sys = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     dia = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    height = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    def calculate_bmi(self):
+        if self.height and self.weight:
+            height_in_m = self.height / 100  # Convert cm to meters
+            return round(self.weight / (height_in_m ** 2), 2)
+        return None
 
 
 class VitalHistoryPatient(models.Model):
@@ -196,6 +210,13 @@ class VitalHistoryPatient(models.Model):
     )
     sys = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     dia = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    height = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    def calculate_bmi(self):
+        if self.height and self.weight:
+            height_in_m = self.height / 100  # Convert cm to meters
+            return round(self.weight / (height_in_m ** 2), 2)
+        return None
 
 
 class VitalHistoryDoctor(models.Model):
@@ -219,6 +240,13 @@ class VitalHistoryDoctor(models.Model):
     )
     sys = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     dia = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    height = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    def calculate_bmi(self):
+        if self.height and self.weight:
+            height_in_m = self.height / 100  # Convert cm to meters
+            return round(self.weight / (height_in_m ** 2), 2)
+        return None
 
 
 class Devices(models.Model):

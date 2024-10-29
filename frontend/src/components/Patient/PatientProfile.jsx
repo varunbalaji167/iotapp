@@ -14,8 +14,6 @@ const PatientProfile = () => {
     name: "",
     dob: "",
     blood_group: "",
-    height: "",
-    weight: "",
     profile_picture: null,
   });
   const [newProfile, setNewProfile] = useState({});
@@ -312,8 +310,6 @@ const PatientProfile = () => {
           {[
             { label: "Name", type: "text", name: "name", icon: FaUser },
             { label: "Date of Birth", type: "date", name: "dob", icon: FaCalendarAlt },
-            { label: "Height (cm)", type: "number", name: "height", icon: FaRuler },
-            { label: "Weight (kg)", type: "number", name: "weight", icon: FaWeight },
           ].map(({ label, type, name, icon: Icon }) => (
             <div key={name} className="flex flex-col md:flex-row md:items-center">
               <div className="flex items-center mb-2 md:mb-0 md:w-1/3">

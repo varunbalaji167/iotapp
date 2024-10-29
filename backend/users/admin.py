@@ -52,7 +52,7 @@ class UserAdmin(BaseUserAdmin):
 # Custom admin class for PatientProfile
 class PatientProfileAdmin(admin.ModelAdmin):
     model = PatientProfile
-    list_display = ("user", "name", "dob", "blood_group", "height", "weight")
+    list_display = ("user", "name", "dob", "blood_group")
     list_filter = ("blood_group", "dob")
     search_fields = ("user__username", "name", "blood_group")
 
@@ -78,6 +78,8 @@ class PatientDataAdmin(admin.ModelAdmin):
         "sys",
         "dia",
         "created_at",
+        "height",
+        "weight"
     )
     list_filter = ("temperature", "glucose_level", "created_at")
     search_fields = ("patient__user__username", "glucose_level", "heart_rate")
@@ -95,6 +97,8 @@ class DoctorDataAdmin(admin.ModelAdmin):
         "heart_rate_bp",
         "sys",
         "dia",
+        "height",
+        "weight",
         "created_at",
     )
     list_filter = ("temperature", "glucose_level", "created_at")
@@ -114,6 +118,8 @@ class VitalHistoryPatientAdmin(admin.ModelAdmin):
         "heart_rate_bp",
         "sys",
         "dia",
+        "height",
+        "weight",
         "recorded_at",
     )
     list_filter = ("temperature", "glucose_level", "recorded_at")
@@ -133,6 +139,8 @@ class VitalHistoryDoctorAdmin(admin.ModelAdmin):
         "heart_rate_bp",
         "sys",
         "dia",
+        "height",
+        "weight",
         "recorded_at",
     )
     list_filter = ("temperature", "glucose_level", "recorded_at")

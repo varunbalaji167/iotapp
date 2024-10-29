@@ -76,8 +76,6 @@ class PatientProfileSerializer(serializers.ModelSerializer):
             "name",
             "dob",
             "blood_group",
-            "height",
-            "weight",
             "profile_picture",
         ]
 
@@ -94,6 +92,7 @@ class PatientDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = PatientData
         fields = [
+            "id",
             "temperature",
             "glucose_level",
             "glucose_samples",
@@ -102,6 +101,8 @@ class PatientDataSerializer(serializers.ModelSerializer):
             "heart_rate_bp",
             "sys",
             "dia",
+            "height",
+            "weight",
             "created_at",
         ]
 
@@ -110,6 +111,7 @@ class DoctorDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = DoctorData
         fields = [
+            "id",
             "temperature",
             "glucose_level",
             "glucose_samples",
@@ -118,6 +120,8 @@ class DoctorDataSerializer(serializers.ModelSerializer):
             "heart_rate_bp",
             "sys",
             "dia",
+            "height",
+            "weight",
             "created_at",
         ]
 
@@ -141,6 +145,8 @@ class VitalHistoryPatientSerializer(serializers.ModelSerializer):
             "heart_rate_bp",
             "sys",
             "dia",
+            "height",
+            "weight",
             "recorded_at",
         ]
 
@@ -158,5 +164,7 @@ class VitalHistoryDoctorSerializer(serializers.ModelSerializer):
             "heart_rate_bp",
             "sys",
             "dia",
+            "height",
+            "weight",
             "recorded_at",
         ]
