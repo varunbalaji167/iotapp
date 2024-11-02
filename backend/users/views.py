@@ -6,7 +6,16 @@ from rest_framework.views import APIView
 from django.core.files.storage import default_storage
 from django.shortcuts import get_object_or_404
 from django.http import Http404
-from .models import CustomUser, PatientProfile, DoctorProfile, Devices, DoctorData, PatientData, VitalHistoryPatient, VitalHistoryDoctor
+from .models import (
+    CustomUser,
+    PatientProfile,
+    DoctorProfile,
+    Devices,
+    DoctorData,
+    PatientData,
+    VitalHistoryPatient,
+    VitalHistoryDoctor,
+)
 from .serializers import (
     RegisterSerializer,
     LoginSerializer,
@@ -16,7 +25,7 @@ from .serializers import (
     PatientProfileSerializer,
     DoctorProfileSerializer,
     VitalHistoryPatientSerializer,
-    VitalHistoryDoctorSerializer
+    VitalHistoryDoctorSerializer,
 )
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -38,21 +47,27 @@ class LoginView(generics.GenericAPIView):
         if user:
             refresh = RefreshToken.for_user(user)
             serializer = RegisterSerializer(user)
-            return Response({
-                "user": serializer.data,
-                "token": {
-                    "access": str(refresh.access_token),
-                    "refresh": str(refresh),
+            return Response(
+                {
+                    "user": serializer.data,
+                    "token": {
+                        "access": str(refresh.access_token),
+                        "refresh": str(refresh),
+                    },
                 },
-            }, status=status.HTTP_200_OK)
+                status=status.HTTP_200_OK,
+            )
 
-        return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
 from .iotutils import create, recog, set_user
 import cv2
+
 
 # Camera Class for Face Recognition
 class Camera:
@@ -73,7 +88,7 @@ class Camera:
 #     try:
 #         # Load face encodings
 #         data = create()
-        
+
 #         # Initialize the camera and recognize the face
 #         camera = Camera()
 #         recognized_user = recog(data, camera=camera)
@@ -104,9 +119,10 @@ class Camera:
 #     except CustomUser.DoesNotExist:
 #         return JsonResponse({"face_auth": "Failed", "error": "User does not exist"}, status=404)
 #     except Exception as e:
-#         return JsonResponse({"face_auth": "Failed", "error": str(e)}, status=500)    
+#         return JsonResponse({"face_auth": "Failed", "error": str(e)}, status=500)
 
-@api_view(['POST'])
+
+@api_view(["POST"])
 def face_authentication_view(request):
     try:
         print("Starting face authentication...")
@@ -121,32 +137,42 @@ def face_authentication_view(request):
         print(f"Auth result: {auth}")
 
         if auth.get("Registered") == recognized_user:
-            user = CustomUser.objects.get(username=recognized_user)  # Ensure this is valid
+            user = CustomUser.objects.get(
+                username=recognized_user
+            )  # Ensure this is valid
             print(f"User found: {user.username}")
 
             refresh = RefreshToken.for_user(user)
 
-            return JsonResponse({
-                "face_auth": "Success",
-                "user": {
-                    "username": user.username,
-                    "email": user.email,
-                    "role": user.role,
+            return JsonResponse(
+                {
+                    "face_auth": "Success",
+                    "user": {
+                        "username": user.username,
+                        "email": user.email,
+                        "role": user.role,
+                    },
+                    "token": {
+                        "access": str(refresh.access_token),
+                        "refresh": str(refresh),
+                    },
                 },
-                "token": {
-                    "access": str(refresh.access_token),
-                    "refresh": str(refresh),
-                },
-            }, status=200)
+                status=200,
+            )
         else:
-            return JsonResponse({"face_auth": "Failed", "error": "No Match Found"}, status=401)
+            return JsonResponse(
+                {"face_auth": "Failed", "error": "No Match Found"}, status=401
+            )
 
     except CustomUser.DoesNotExist:
-        return JsonResponse({"face_auth": "Failed", "error": "User does not exist"}, status=404)
+        return JsonResponse(
+            {"face_auth": "Failed", "error": "User does not exist"}, status=404
+        )
     except Exception as e:
         print(f"Error: {str(e)}")
         return JsonResponse({"face_auth": "Failed", "error": str(e)}, status=500)
-    
+
+
 class UserProfileView(APIView):
     """
     Base view for user profiles (patient/doctor).
@@ -161,12 +187,15 @@ class UserProfileView(APIView):
         # Try to find the profile for the user
         profile, created = self.profile_model.objects.get_or_create(user=user)
         serializer = self.profile_serializer(profile)
-        return Response(serializer.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )
 
     def post(self, request):
         user = request.user
         profile = get_object_or_404(self.profile_model, user=user)
-        
+
         serializer = self.profile_serializer(profile, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -256,12 +285,14 @@ class DoctorDataView(APIView):
 
     def get(self, request):
         doctor_profile = request.user.doctorprofile
-        latest_vitals = DoctorData.objects.filter(doctor=doctor_profile).order_by('-created_at')
+        latest_vitals = DoctorData.objects.filter(doctor=doctor_profile).order_by(
+            "-created_at"
+        )
         serializer = DoctorDataSerializer(latest_vitals, many=True)
         response_data = serializer.data
         for item in response_data:
-            vital_data = DoctorData.objects.get(id=item['id'])
-            item['bmi'] = vital_data.calculate_bmi()
+            vital_data = DoctorData.objects.get(id=item["id"])
+            item["bmi"] = vital_data.calculate_bmi()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -270,63 +301,202 @@ class PatientDataView(APIView):
 
     def get(self, request):
         patient_profile = get_object_or_404(PatientProfile, user=request.user)
-        latest_vitals = PatientData.objects.filter(patient=patient_profile).order_by('-created_at')
+        latest_vitals = PatientData.objects.filter(patient=patient_profile).order_by(
+            "-created_at"
+        )
         serializer = PatientDataSerializer(latest_vitals, many=True)
         response_data = serializer.data
         for item in response_data:
-            vital_data = PatientData.objects.get(id=item['id'])
-            item['bmi'] = vital_data.calculate_bmi()
+            vital_data = PatientData.objects.get(id=item["id"])
+            item["bmi"] = vital_data.calculate_bmi()
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
+
 class PatientVitalHistoryView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
         # Check if the logged-in user is a patient
-        if request.user.role != 'patient':
-            return Response({"detail": "Unauthorized. Only patients can access this data."},
-                            status=status.HTTP_403_FORBIDDEN)
+        if request.user.role != "patient":
+            return Response(
+                {"detail": "Unauthorized. Only patients can access this data."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         # Get the PatientProfile linked to the logged-in user
         try:
             patient_profile = PatientProfile.objects.get(user=request.user.unique_id)
         except PatientProfile.DoesNotExist:
-            return Response({"detail": "Patient profile not found."},
-                            status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Patient profile not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         # Filter vital records related to the logged-in patient's profile
-        vital_records = VitalHistoryPatient.objects.filter(patient=patient_profile).order_by('-recorded_at')
-        
+        vital_records = VitalHistoryPatient.objects.filter(
+            patient=patient_profile
+        ).order_by("-recorded_at")
+
         serializer = VitalHistoryPatientSerializer(vital_records, many=True)
         response_data = serializer.data
         for item in response_data:
-            vital_data = VitalHistoryPatient.objects.get(id=item['id'])
-            item['bmi'] = vital_data.calculate_bmi()
+            vital_data = VitalHistoryPatient.objects.get(id=item["id"])
+            item["bmi"] = vital_data.calculate_bmi()
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
 
 class DoctorVitalHistoryView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
         # Check if the logged-in user is a doctor
-        if request.user.role != 'doctor':
-            return Response({"detail": "Unauthorized. Only doctors can access this data."},
-                            status=status.HTTP_403_FORBIDDEN)
+        if request.user.role != "doctor":
+            return Response(
+                {"detail": "Unauthorized. Only doctors can access this data."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         # Get the DoctorProfile linked to the logged-in user
         try:
             doctor_profile = DoctorProfile.objects.get(user=request.user.unique_id)
         except DoctorProfile.DoesNotExist:
-            return Response({"detail": "Doctor profile not found."},
-                            status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Doctor profile not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         # Filter vital records related to the logged-in doctor's profile
-        vital_records = VitalHistoryDoctor.objects.filter(doctor=doctor_profile).order_by('-recorded_at')
-        
+        vital_records = VitalHistoryDoctor.objects.filter(
+            doctor=doctor_profile
+        ).order_by("-recorded_at")
+
         serializer = VitalHistoryDoctorSerializer(vital_records, many=True)
         response_data = serializer.data
         for item in response_data:
-            vital_data = VitalHistoryDoctor.objects.get(id=item['id'])
-            item['bmi'] = vital_data.calculate_bmi()
+            vital_data = VitalHistoryDoctor.objects.get(id=item["id"])
+            item["bmi"] = vital_data.calculate_bmi()
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+from django.http import JsonResponse
+from .generatepdf import pdf
+import os
+from .database import insert_health_data
+from datetime import date, datetime
+from django.conf import settings
+
+
+class GenerateAndPrintPDFView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        # Check authentication
+        if not request.user.is_authenticated:
+            return Response(
+                {"error": "User is not authenticated."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Determine role and fetch the profile and latest vital record
+        profile, latest_vital_record = None, None
+
+        if request.user.role == "doctor":
+            try:
+                profile = DoctorProfile.objects.get(user=request.user)
+                latest_vital_record = (
+                    VitalHistoryDoctor.objects.filter(doctor=profile)
+                    .order_by("-recorded_at")
+                    .first()
+                )
+            except DoctorProfile.DoesNotExist:
+                return Response(
+                    {"error": "Doctor profile not found."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+        elif request.user.role == "patient":
+            try:
+                profile = PatientProfile.objects.get(user=request.user)
+                latest_vital_record = (
+                    VitalHistoryPatient.objects.filter(patient=profile)
+                    .order_by("-recorded_at")
+                    .first()
+                )
+            except PatientProfile.DoesNotExist:
+                return Response(
+                    {"error": "Patient profile not found."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+        else:
+            return Response(
+                {
+                    "error": "Unauthorized. Only doctors and patients can generate this PDF."
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if not latest_vital_record:
+            return Response(
+                {"error": "No vital records found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # print("DOB:", profile.dob, "Type:", type(profile.dob))
+
+        # # Function to calculate age in years
+        # def calculate_age(dob):
+        #     today = date.today()
+        #     if dob > today:
+        #         return "Date of birth is in the future."
+
+        #     age = today.year - dob.year
+        #     if (today.month, today.day) < (dob.month, dob.day):
+        #         age -= 1
+        #     return age
+
+        # # Example usage:
+        # print("DOB:", profile.dob)
+        # calculated_age = calculate_age(profile.dob)
+        # print("Calculated Age:", calculated_age)
+
+        # Data preparation for PDF and database
+        results3 = [profile.name, "24", "Male", "7", "O+"]
+        results2 = [
+            float(latest_vital_record.temperature),
+            int(latest_vital_record.spo2),
+            int(latest_vital_record.heart_rate),
+            float(latest_vital_record.height),
+            float(latest_vital_record.weight),
+            int(latest_vital_record.calculate_bmi()),
+            int(latest_vital_record.sys),
+            int(latest_vital_record.dia),
+            float(latest_vital_record.glucose_level),
+            int(latest_vital_record.heart_rate_bp),
+            7,  # Assuming "7" is an integer
+        ]
+
+        new_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        printpdf = results2 + ["16.50"]
+        database = [new_date] + results2
+
+        # Generate and save the PDF
+        pdf(results3, printpdf, new_date)
+        insert_health_data(database)
+
+        directory = "output.pdf"
+        try:
+            # Uncomment for actual printing on Windows
+            # os.startfile(directory, "print")
+            print("Printing PDF Page")
+        except Exception as e:
+            return Response(
+                {"error": f"Error opening or printing the PDF: {e}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(
+            {
+                "message": "PDF generated and printed successfully",
+                "pdf_url": f"{request.build_absolute_uri(settings.MEDIA_URL)}output.pdf",
+            },
+            status=status.HTTP_200_OK,
+        )

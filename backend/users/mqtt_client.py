@@ -7,6 +7,8 @@ from channels.layers import get_channel_layer
 import asyncio
 import json, logging
 
+
+
 # MQTT connection settings
 broker_address = "7957a33dd9d64f539a01cf7ce0d01754.s1.eu.hivemq.cloud"
 broker_port = 8883
@@ -52,7 +54,7 @@ def on_message(client, userdata, msg):
                     group_name,
                     {
                         "type": "hardware_message",
-                        "message": json.dumps({"Status": status}),
+                        "message": json.dumps({"Status": status, "Subject": subject}),
                     },
                 )
 
@@ -65,7 +67,7 @@ def on_message(client, userdata, msg):
                         group_name,
                         {
                             "type": "glucose_message",
-                            "message": json.dumps({"Status": status}),
+                            "message": json.dumps({"Status": status,"Subject": subject}),
                         },
                     )
 
@@ -82,6 +84,7 @@ def on_message(client, userdata, msg):
                                     "Status": status,
                                     "Glucose": glucose_level,
                                     "Samples": glucose_samples,
+                                    "Subject": subject
                                 }
                             ),
                         },
@@ -91,7 +94,7 @@ def on_message(client, userdata, msg):
                         group_name,
                         {
                             "type": "glucose_message",
-                            "message": json.dumps({"Status": status}),
+                            "message": json.dumps({"Status": status,"Subject": subject}),
                         },
                     )
 
@@ -100,7 +103,7 @@ def on_message(client, userdata, msg):
                         group_name,
                         {
                             "type": "glucose_message",
-                            "message": json.dumps({"Status": status}),
+                            "message": json.dumps({"Status": status,"Subject": subject}),
                         },
                     )
 
@@ -117,7 +120,7 @@ def on_message(client, userdata, msg):
                         {
                             "type": "temperature_message",
                             "message": json.dumps(
-                                {"Status": status, "Temperature": temperature}
+                                {"Status": status, "Temperature": temperature, "Subject": subject}
                             ),
                         },
                     )
@@ -126,7 +129,7 @@ def on_message(client, userdata, msg):
                         group_name,
                         {
                             "type": "temperature_message",
-                            "message": json.dumps({"Status": status}),
+                            "message": json.dumps({"Status": status, "Subject": subject}),
                         },
                     )
 
@@ -135,7 +138,7 @@ def on_message(client, userdata, msg):
                         group_name,
                         {
                             "type": "temperature_message",
-                            "message": json.dumps({"Status": status}),
+                            "message": json.dumps({"Status": status, "Subject": subject}),
                         },
                     )
 
@@ -152,7 +155,7 @@ def on_message(client, userdata, msg):
                         {
                             "type": "height_message",
                             "message": json.dumps(
-                                {"Status": status, "Height": height}
+                                {"Status": status, "Height": height, "Subject": subject}
                             ),
                         },
                     )
@@ -161,7 +164,7 @@ def on_message(client, userdata, msg):
                         group_name,
                         {
                             "type": "height_message",
-                            "message": json.dumps({"Status": status}),
+                            "message": json.dumps({"Status": status, "Subject": subject}),
                         },
                     )
 
@@ -170,7 +173,7 @@ def on_message(client, userdata, msg):
                         group_name,
                         {
                             "type": "height_message",
-                            "message": json.dumps({"Status": status}),
+                            "message": json.dumps({"Status": status,"Subject": subject}),
                         },
                     )     
 
@@ -187,7 +190,7 @@ def on_message(client, userdata, msg):
                         {
                             "type": "weight_message",
                             "message": json.dumps(
-                                {"Status": status, "Weight": weight}
+                                {"Status": status, "Weight": weight,"Subject": subject}
                             ),
                         },
                     )
@@ -196,7 +199,7 @@ def on_message(client, userdata, msg):
                         group_name,
                         {
                             "type": "weight_message",
-                            "message": json.dumps({"Status": status}),
+                            "message": json.dumps({"Status": status,"Subject": subject}),
                         },
                     )
 
@@ -205,7 +208,7 @@ def on_message(client, userdata, msg):
                         group_name,
                         {
                             "type": "weight_message",
-                            "message": json.dumps({"Status": status}),
+                            "message": json.dumps({"Status": status,"Subject": subject}),
                         },
                     )                
 
@@ -218,7 +221,7 @@ def on_message(client, userdata, msg):
                         group_name,
                         {
                             "type": "oximeter_message",
-                            "message": json.dumps({"Status": status}),
+                            "message": json.dumps({"Status": status,  "Subject": subject}),
                         },
                     )
 
@@ -237,6 +240,7 @@ def on_message(client, userdata, msg):
                                     "Status": status,
                                     "SPO2": spo2,
                                     "Heart_Rate": heart_rate,
+                                    "Subject": subject
                                 }
                             ),
                         },
@@ -246,7 +250,7 @@ def on_message(client, userdata, msg):
                         group_name,
                         {
                             "type": "oximeter_message",
-                            "message": json.dumps({"Status": status}),
+                            "message": json.dumps({"Status": status,  "Subject": subject}),
                         },
                     )
 
@@ -255,7 +259,7 @@ def on_message(client, userdata, msg):
                         group_name,
                         {
                             "type": "oximeter_message",
-                            "message": json.dumps({"Status": status}),
+                            "message": json.dumps({"Status": status,  "Subject": subject}),
                         },
                     )
 
@@ -268,7 +272,7 @@ def on_message(client, userdata, msg):
                         group_name,
                         {
                             "type": "bp_message",
-                            "message": json.dumps({"Status": status}),
+                            "message": json.dumps({"Status": status,"Subject": subject}),
                         },
                     )
 
@@ -289,6 +293,7 @@ def on_message(client, userdata, msg):
                                     "SYS": sys,
                                     "DIA": dia,
                                     "Heart_Rate": heart_rate_bp,
+                                    "Subject": subject
                                 }
                             ),
                         },
@@ -298,7 +303,7 @@ def on_message(client, userdata, msg):
                         group_name,
                         {
                             "type": "bp_message",
-                            "message": json.dumps({"Status": status}),
+                            "message": json.dumps({"Status": status,"Subject": subject}),
                         },
                     )
 
@@ -307,7 +312,7 @@ def on_message(client, userdata, msg):
                         group_name,
                         {
                             "type": "bp_message",
-                            "message": json.dumps({"Status": status}),
+                            "message": json.dumps({"Status": status,"Subject": subject}),
                         },
                     )
 

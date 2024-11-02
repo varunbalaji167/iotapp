@@ -13,7 +13,8 @@ from .views import (
     PatientDataView,
     PatientVitalHistoryView,
     DoctorVitalHistoryView,
-    face_authentication_view
+    face_authentication_view,
+    GenerateAndPrintPDFView
 )
 
 urlpatterns = [
@@ -38,4 +39,5 @@ urlpatterns = [
     path("patientvitals/history/", PatientVitalHistoryView.as_view(), name='patient-vital-history'),
     path("doctorvitals/history/", DoctorVitalHistoryView.as_view(), name='doctor-vital-history'),
     path('face-auth/', face_authentication_view, name='face_auth'),
+    path('generate-pdf/', GenerateAndPrintPDFView.as_view(), name='generate_pdf')
 ]

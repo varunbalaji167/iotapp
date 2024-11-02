@@ -106,9 +106,10 @@ class VitalDataConsumer(AsyncWebsocketConsumer):
 
         status = message_data.get("Status")
         temperature = message_data.get("Temperature")
+        subject = message_data.get("Subject")
 
         if status and temperature:
-            await self.send(text_data=json.dumps({"Status": status}))
+            await self.send(text_data=json.dumps({"Status": status, "Subject": subject}))
             await self.save_temperature_to_db(temperature)
         else:
             await self.send(text_data=json.dumps(message_data))
@@ -120,9 +121,10 @@ class VitalDataConsumer(AsyncWebsocketConsumer):
 
         status = message_data.get("Status")
         height = message_data.get("Height")
+        subject = message_data.get("Subject")
 
         if status and height:
-            await self.send(text_data=json.dumps({"Status": status}))
+            await self.send(text_data=json.dumps({"Status": status, "Subject": subject}))
             await self.save_height_to_db(height)
         else:
             await self.send(text_data=json.dumps(message_data))
@@ -134,9 +136,10 @@ class VitalDataConsumer(AsyncWebsocketConsumer):
 
         status = message_data.get("Status")
         weight = message_data.get("Weight")
+        subject = message_data.get("Subject")
 
         if status and weight:
-            await self.send(text_data=json.dumps({"Status": status}))
+            await self.send(text_data=json.dumps({"Status": status, "Subject": subject}))
             await self.save_weight_to_db(weight)
         else:
             await self.send(text_data=json.dumps(message_data))
@@ -149,9 +152,11 @@ class VitalDataConsumer(AsyncWebsocketConsumer):
         glucose_level = message_data.get("Glucose")
         status = message_data.get("Status")
         glucose_samples = message_data.get("Samples")
+        subject = message_data.get("Subject")
+
         if status and glucose_level and glucose_samples:
             await self.send(
-                text_data=json.dumps({"Status": status, "Samples": glucose_samples})
+                text_data=json.dumps({"Status": status, "Samples": glucose_samples,"Subject": subject})
             )
             await self.save_glucose_to_db(glucose_level, glucose_samples)
         else:
@@ -165,9 +170,10 @@ class VitalDataConsumer(AsyncWebsocketConsumer):
         status = message_data.get("Status")
         heart_rate = message_data.get("Heart_Rate")
         spo2 = message_data.get("SPO2")
+        subject = message_data.get("Subject")
 
         if status and heart_rate and spo2:
-            await self.send(text_data=json.dumps({"Status": status}))
+            await self.send(text_data=json.dumps({"Status": status, "Subject": subject}))
             await self.save_oximeter_to_db(heart_rate, spo2)
         else:
             await self.send(text_data=json.dumps(message_data))
@@ -178,7 +184,8 @@ class VitalDataConsumer(AsyncWebsocketConsumer):
         message_data = json.loads(message)
 
         status = message_data.get("Status")
-        await self.send(text_data=json.dumps({"Status": status}))
+        subject =  message_data.get("Subject")
+        await self.send(text_data=json.dumps({"Status": status, "Subject": subject}))
 
     async def bp_message(self, event):
         """Handle bp messages received in the bp group."""
@@ -189,9 +196,10 @@ class VitalDataConsumer(AsyncWebsocketConsumer):
         heart_rate_bp = message_data.get("Heart_Rate")
         sys = message_data.get("SYS")
         dia = message_data.get("DIA")
+        subject =  message_data.get("Subject")
 
         if status and heart_rate_bp and sys and dia:
-            await self.send(text_data=json.dumps({"Status": status}))
+            await self.send(text_data=json.dumps({"Status": status,"Subject": subject}))
             await self.save_bp_to_db(heart_rate_bp, sys, dia)
         else:
             await self.send(text_data=json.dumps(message_data))
