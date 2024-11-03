@@ -13,12 +13,16 @@ import {
   FaStethoscope,
   FaBriefcase,
   FaCamera,
+  FaTint,
+  FaVenusMars
 } from "react-icons/fa";
 
 const DoctorProfile = () => {
   const [profile, setProfile] = useState({
     name: "",
     dob: "",
+    blood_group: "",
+    gender:"",
     specialization: "",
     experience: "",
     profile_picture: null,
@@ -159,6 +163,11 @@ const DoctorProfile = () => {
     const formData = new FormData();
     const profileToSubmit = isProfileCreated ? newProfile : profile;
 
+      // Add a default value for gender if it is empty
+  if (!profileToSubmit.gender) {
+    profileToSubmit.gender = "Male"; // Or any default value you prefer
+  }
+  
     if (profileToSubmit && typeof profileToSubmit === "object") {
       for (const [key, value] of Object.entries(profileToSubmit)) {
         formData.append(key, value);
@@ -370,6 +379,61 @@ const DoctorProfile = () => {
               />
             </div>
           ))}
+
+          {/* Blood Group Dropdown */}
+          <div className="flex flex-col md:flex-row md:items-center">
+            <div className="flex items-center mb-2 md:mb-0 md:w-1/3">
+              <FaTint className="mr-2 text-gray-600" />
+              <label htmlFor="blood_group" className="block text-sm font-medium text-gray-700">
+                Blood Group
+              </label>
+            </div>
+            <select
+              id="blood_group"
+              name="blood_group"
+              value={isProfileCreated ? newProfile?.blood_group || profile.blood_group : profile.blood_group}
+              onChange={handleChange}
+              className="mt-1 block w-full md:w-2/3 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              required
+            >
+              <option value="" disabled>
+                Select Blood Group
+              </option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+            </select>
+          </div>
+
+          {/* Gender Dropdown */}
+          <div className="flex flex-col md:flex-row md:items-center">
+            <div className="flex items-center mb-2 md:mb-0 md:w-1/3">
+              <FaVenusMars className="mr-2 text-gray-600" />
+              <label htmlFor="gender" className="block text-sm font-medium text-gray-700">
+                Gender
+              </label>
+            </div>
+            <select
+              id="gender"
+              name="gender"
+              value={isProfileCreated ? newProfile?.gender || profile.gender : profile.gender}
+              onChange={handleChange}
+              className="mt-1 block w-full md:w-2/3 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              required
+            >
+              <option value="" disabled>
+                Select your Gender
+              </option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Others">Others</option>
+            </select>
+          </div>
 
           <div className="flex flex-col items-center">
             <Webcam

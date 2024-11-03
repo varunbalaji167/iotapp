@@ -48,6 +48,7 @@
 
 
 # # pdf(results3=[['DIKSHANT', '24', 'Male', '7', 'O+']],results2=[['914.72', '100', '709', '176.55', '712.32', '800', '12', '141', '16.50', '23.25']], new = datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
 from django.conf import settings
 import os
 from PyPDF2 import PdfWriter, PdfReader

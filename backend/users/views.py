@@ -385,7 +385,6 @@ from .database import insert_health_data
 from datetime import date, datetime
 from django.conf import settings
 
-
 class GenerateAndPrintPDFView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -440,37 +439,39 @@ class GenerateAndPrintPDFView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        # print("DOB:", profile.dob, "Type:", type(profile.dob))
+        # Function to calculate age in years
+        def calculate_age(dob):
+            today = date.today()
+            if dob > today:
+                return "Date of birth is in the future."
 
-        # # Function to calculate age in years
-        # def calculate_age(dob):
-        #     today = date.today()
-        #     if dob > today:
-        #         return "Date of birth is in the future."
+            age = today.year - dob.year
+            if (today.month, today.day) < (dob.month, dob.day):
+                age -= 1
+            return age
 
-        #     age = today.year - dob.year
-        #     if (today.month, today.day) < (dob.month, dob.day):
-        #         age -= 1
-        #     return age
+        # Calculate age and prepare results
+        calculated_age = calculate_age(profile.dob)
+        results3 = [profile.name, calculated_age, profile.gender, "7", profile.blood_group]
 
-        # # Example usage:
-        # print("DOB:", profile.dob)
-        # calculated_age = calculate_age(profile.dob)
-        # print("Calculated Age:", calculated_age)
+        # Safe value extraction function
+        def safe_float(value):
+            return float(value) if value is not None else 0.0
 
-        # Data preparation for PDF and database
-        results3 = [profile.name, "24", "Male", "7", "O+"]
+        def safe_int(value):
+            return int(value) if value is not None else 0
+
         results2 = [
-            float(latest_vital_record.temperature),
-            int(latest_vital_record.spo2),
-            int(latest_vital_record.heart_rate),
-            float(latest_vital_record.height),
-            float(latest_vital_record.weight),
-            int(latest_vital_record.calculate_bmi()),
-            int(latest_vital_record.sys),
-            int(latest_vital_record.dia),
-            float(latest_vital_record.glucose_level),
-            int(latest_vital_record.heart_rate_bp),
+            safe_float(latest_vital_record.temperature),
+            safe_int(latest_vital_record.spo2),
+            safe_int(latest_vital_record.heart_rate),
+            safe_float(latest_vital_record.height),
+            safe_float(latest_vital_record.weight),
+            safe_int(latest_vital_record.calculate_bmi()),  # Ensure this method returns an integer or handle its logic accordingly
+            safe_int(latest_vital_record.sys),
+            safe_int(latest_vital_record.dia),
+            safe_float(latest_vital_record.glucose_level),
+            safe_int(latest_vital_record.heart_rate_bp),
             7,  # Assuming "7" is an integer
         ]
 
@@ -482,11 +483,11 @@ class GenerateAndPrintPDFView(APIView):
         pdf(results3, printpdf, new_date)
         insert_health_data(database)
 
-        directory = "output.pdf"
+        # Attempt to print the PDF
         try:
-            # Uncomment for actual printing on Windows
-            # os.startfile(directory, "print")
             print("Printing PDF Page")
+            # Uncomment for actual printing on Windows
+            # os.startfile(os.path.join(settings.MEDIA_ROOT, "output.pdf"), "print")
         except Exception as e:
             return Response(
                 {"error": f"Error opening or printing the PDF: {e}"},

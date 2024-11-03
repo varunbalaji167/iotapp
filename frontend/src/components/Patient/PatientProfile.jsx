@@ -6,7 +6,7 @@ import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import PatientNavbar from "./PatientNavbar";
-import { FaUser, FaCalendarAlt, FaWeight, FaRuler, FaTint, FaCamera } from "react-icons/fa";
+import { FaUser, FaCalendarAlt, FaTint, FaCamera, FaVenusMars } from "react-icons/fa";
 
 
 const PatientProfile = () => {
@@ -14,6 +14,7 @@ const PatientProfile = () => {
     name: "",
     dob: "",
     blood_group: "",
+    gender:"",
     profile_picture: null,
   });
   const [newProfile, setNewProfile] = useState({});
@@ -147,6 +148,11 @@ const PatientProfile = () => {
     const formData = new FormData();
     const profileToSubmit = isProfileCreated ? newProfile : profile;
 
+      // Add a default value for gender if it is empty
+  if (!profileToSubmit.gender) {
+    profileToSubmit.gender = "Male"; // Or any default value you prefer
+  }
+  
     if (profileToSubmit && typeof profileToSubmit === "object") {
       for (const [key, value] of Object.entries(profileToSubmit)) {
         formData.append(key, value);
@@ -356,6 +362,31 @@ const PatientProfile = () => {
               <option value="AB-">AB-</option>
               <option value="O+">O+</option>
               <option value="O-">O-</option>
+            </select>
+          </div>
+
+          {/* Gender Dropdown */}
+          <div className="flex flex-col md:flex-row md:items-center">
+            <div className="flex items-center mb-2 md:mb-0 md:w-1/3">
+              <FaVenusMars className="mr-2 text-gray-600" />
+              <label htmlFor="gender" className="block text-sm font-medium text-gray-700">
+                Gender
+              </label>
+            </div>
+            <select
+              id="gender"
+              name="gender"
+              value={isProfileCreated ? newProfile?.gender || profile.gender : profile.gender}
+              onChange={handleChange}
+              className="mt-1 block w-full md:w-2/3 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              required
+            >
+              <option value="" disabled>
+                Select your Gender
+              </option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Others">Others</option>
             </select>
           </div>
 

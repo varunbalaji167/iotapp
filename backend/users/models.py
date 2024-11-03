@@ -64,8 +64,12 @@ class PatientProfile(models.Model):
     name = models.CharField(max_length=100, null=True, blank=True)
     dob = models.DateField(null=True, blank=True)
     blood_group = models.CharField(max_length=10, null=True, blank=True)
-    # height = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    # weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    GENDER_TYPE_CHOICES = [
+        ('Male', 'Male'),
+        ('Female', 'Female'),
+        ("Others","Others")
+    ]
+    gender = models.CharField(max_length=50, choices=GENDER_TYPE_CHOICES)
     profile_picture = models.ImageField(
         upload_to=user_profile_picture_path, null=True, blank=True
     )
@@ -98,8 +102,15 @@ class DoctorProfile(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, to_field="unique_id"
     )
+    GENDER_TYPE_CHOICES = [
+        ('Male', 'Male'),
+        ('Female', 'Female'),
+        ("Others","Others")
+    ]
+    gender = models.CharField(max_length=50, choices=GENDER_TYPE_CHOICES)
     name = models.CharField(max_length=100, null=True, blank=True)
     dob = models.DateField(null=True, blank=True)
+    blood_group = models.CharField(max_length=10, null=True, blank=True)
     specialization = models.CharField(max_length=100, null=True, blank=True)
     experience = models.PositiveIntegerField(null=True, blank=True)
     profile_picture = models.ImageField(
