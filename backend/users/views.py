@@ -452,7 +452,7 @@ class GenerateAndPrintPDFView(APIView):
 
         # Calculate age and prepare results
         calculated_age = calculate_age(profile.dob)
-        results3 = [profile.name, calculated_age, profile.gender, "7", profile.blood_group]
+        results3 = [profile.name, calculated_age, profile.gender, profile.charak_id, profile.blood_group]
 
         # Safe value extraction function
         def safe_float(value):
@@ -472,7 +472,8 @@ class GenerateAndPrintPDFView(APIView):
             safe_int(latest_vital_record.dia),
             safe_float(latest_vital_record.glucose_level),
             safe_int(latest_vital_record.heart_rate_bp),
-            7,  # Assuming "7" is an integer
+            # 7,  # Assuming "7" is an integer
+            safe_int(profile.charak_id)
         ]
 
         new_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

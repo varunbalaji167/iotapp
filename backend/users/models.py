@@ -69,7 +69,8 @@ class PatientProfile(models.Model):
         ('Female', 'Female'),
         ("Others","Others")
     ]
-    gender = models.CharField(max_length=50, choices=GENDER_TYPE_CHOICES)
+    charak_id = models.CharField(max_length=10, blank=True,unique=True, null=True)
+    gender = models.CharField(max_length=50,null=True, blank=True, choices=GENDER_TYPE_CHOICES)
     profile_picture = models.ImageField(
         upload_to=user_profile_picture_path, null=True, blank=True
     )
@@ -107,8 +108,9 @@ class DoctorProfile(models.Model):
         ('Female', 'Female'),
         ("Others","Others")
     ]
-    gender = models.CharField(max_length=50, choices=GENDER_TYPE_CHOICES)
+    gender = models.CharField(max_length=50,null=True, blank=True, choices=GENDER_TYPE_CHOICES)
     name = models.CharField(max_length=100, null=True, blank=True)
+    charak_id = models.CharField(max_length=10, blank=True,unique=True, null=True)
     dob = models.DateField(null=True, blank=True)
     blood_group = models.CharField(max_length=10, null=True, blank=True)
     specialization = models.CharField(max_length=100, null=True, blank=True)

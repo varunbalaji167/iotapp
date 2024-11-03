@@ -77,6 +77,7 @@ class PatientProfileSerializer(serializers.ModelSerializer):
             "dob",
             "blood_group",
             "gender",
+            "charak_id",
             "profile_picture",
         ]
 

@@ -6,15 +6,21 @@ import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import PatientNavbar from "./PatientNavbar";
-import { FaUser, FaCalendarAlt, FaTint, FaCamera, FaVenusMars } from "react-icons/fa";
-
+import {
+  FaUser,
+  FaCalendarAlt,
+  FaTint,
+  FaCamera,
+  FaVenusMars,
+  FaIdBadge,
+} from "react-icons/fa";
 
 const PatientProfile = () => {
   const [profile, setProfile] = useState({
     name: "",
     dob: "",
     blood_group: "",
-    gender:"",
+    gender: "",
     profile_picture: null,
   });
   const [newProfile, setNewProfile] = useState({});
@@ -46,66 +52,74 @@ const PatientProfile = () => {
           setIsProfileCreated(false);
         } else {
           setError(
-            `Error fetching profile: ${error.response?.data?.detail || error.message}`
+            `Error fetching profile: ${
+              error.response?.data?.detail || error.message
+            }`
           );
         }
       }
     };
-  
+
     const scheduleTokenRefresh = (expiresIn) => {
       const timeout = expiresIn - 60; // Refresh 1 minute before token expires
       setTimeout(async () => {
         await handleTokenRefresh(); // Call the refresh function
       }, timeout * 1000);
     };
-  
+
     const handleTokenRefresh = async () => {
       const tokens = JSON.parse(localStorage.getItem("token"));
       const refreshToken = tokens?.refresh;
-  
+
       if (!refreshToken) {
         setError("Refresh token is missing.");
         return;
       }
-  
+
       try {
-        const response = await axios.post("http://127.0.0.1:8000/api/users/refresh/", {
-          refresh: refreshToken,
-        });
-  
+        const response = await axios.post(
+          "http://127.0.0.1:8000/api/users/refresh/",
+          {
+            refresh: refreshToken,
+          }
+        );
+
         // Update tokens in localStorage
-        localStorage.setItem("token", JSON.stringify({
-          access: response.data.access,
-          refresh: refreshToken, // Keep the same refresh token
-        }));
-  
+        localStorage.setItem(
+          "token",
+          JSON.stringify({
+            access: response.data.access,
+            refresh: refreshToken, // Keep the same refresh token
+          })
+        );
+
         const newAccessToken = response.data.access;
         const tokenInfo = jwtDecode(newAccessToken);
         const now = Date.now() / 1000;
         const expiresIn = tokenInfo.exp - now;
-  
+
         scheduleTokenRefresh(expiresIn); // Schedule the next refresh
-  
+
         fetchProfile(newAccessToken); // Fetch profile with the new access token
       } catch (error) {
         console.error("Error refreshing token:", error.response?.data); // Log the error response
         setError("Failed to refresh token. Please log in again.");
       }
     };
-  
+
     const initTokenHandling = () => {
       const tokens = JSON.parse(localStorage.getItem("token"));
       let accessToken = tokens?.access;
-  
+
       if (!accessToken) {
         setError("Authentication tokens are missing.");
         return;
       }
-  
+
       const tokenInfo = jwtDecode(accessToken);
       const now = Date.now() / 1000;
       const expiresIn = tokenInfo.exp - now;
-  
+
       if (expiresIn > 60) {
         // If the token is valid for more than 1 minute
         scheduleTokenRefresh(expiresIn); // Schedule token refresh
@@ -115,14 +129,13 @@ const PatientProfile = () => {
         handleTokenRefresh();
       }
     };
-  
+
     if (userRole === "patient") {
       initTokenHandling(); // Initialize token handling on component mount
     }
-  
+
     // Clean up any scheduled timeouts on component unmount
     return () => clearTimeout();
-  
   }, [userRole]);
 
   const captureImage = () => {
@@ -148,11 +161,6 @@ const PatientProfile = () => {
     const formData = new FormData();
     const profileToSubmit = isProfileCreated ? newProfile : profile;
 
-      // Add a default value for gender if it is empty
-  if (!profileToSubmit.gender) {
-    profileToSubmit.gender = "Male"; // Or any default value you prefer
-  }
-  
     if (profileToSubmit && typeof profileToSubmit === "object") {
       for (const [key, value] of Object.entries(profileToSubmit)) {
         formData.append(key, value);
@@ -311,16 +319,36 @@ const PatientProfile = () => {
         )}
         {error && <p className="text-red-500 text-center">{error}</p>}
         {success && <p className="text-green-500 text-center">{success}</p>}
-        
-        <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow-lg">
+
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6 bg-white p-6 rounded-lg shadow-lg"
+        >
           {[
             { label: "Name", type: "text", name: "name", icon: FaUser },
-            { label: "Date of Birth", type: "date", name: "dob", icon: FaCalendarAlt },
+            {
+              label: "Charak ID",
+              type: "text",
+              name: "charak_id",
+              icon: FaIdBadge,
+            },
+            {
+              label: "Date of Birth",
+              type: "date",
+              name: "dob",
+              icon: FaCalendarAlt,
+            },
           ].map(({ label, type, name, icon: Icon }) => (
-            <div key={name} className="flex flex-col md:flex-row md:items-center">
+            <div
+              key={name}
+              className="flex flex-col md:flex-row md:items-center"
+            >
               <div className="flex items-center mb-2 md:mb-0 md:w-1/3">
                 <Icon className="mr-2 text-gray-600" />
-                <label htmlFor={name} className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor={name}
+                  className="block text-sm font-medium text-gray-700"
+                >
                   {label}
                 </label>
               </div>
@@ -328,7 +356,11 @@ const PatientProfile = () => {
                 type={type}
                 id={name}
                 name={name}
-                value={isProfileCreated ? newProfile?.[name] || profile[name] : profile[name]}
+                value={
+                  isProfileCreated
+                    ? newProfile?.[name] || profile[name]
+                    : profile[name]
+                }
                 onChange={handleChange}
                 className="mt-1 block w-full md:w-2/3 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                 required
@@ -339,14 +371,21 @@ const PatientProfile = () => {
           <div className="flex flex-col md:flex-row md:items-center">
             <div className="flex items-center mb-2 md:mb-0 md:w-1/3">
               <FaTint className="mr-2 text-gray-600" />
-              <label htmlFor="blood_group" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="blood_group"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Blood Group
               </label>
             </div>
             <select
               id="blood_group"
               name="blood_group"
-              value={isProfileCreated ? newProfile?.blood_group || profile.blood_group : profile.blood_group}
+              value={
+                isProfileCreated
+                  ? newProfile?.blood_group || profile.blood_group
+                  : profile.blood_group
+              }
               onChange={handleChange}
               className="mt-1 block w-full md:w-2/3 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
               required
@@ -369,14 +408,21 @@ const PatientProfile = () => {
           <div className="flex flex-col md:flex-row md:items-center">
             <div className="flex items-center mb-2 md:mb-0 md:w-1/3">
               <FaVenusMars className="mr-2 text-gray-600" />
-              <label htmlFor="gender" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="gender"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Gender
               </label>
             </div>
             <select
               id="gender"
               name="gender"
-              value={isProfileCreated ? newProfile?.gender || profile.gender : profile.gender}
+              value={
+                isProfileCreated
+                  ? newProfile?.gender || profile.gender
+                  : profile.gender
+              }
               onChange={handleChange}
               className="mt-1 block w-full md:w-2/3 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
               required
@@ -399,8 +445,14 @@ const PatientProfile = () => {
             />
             {capturedImage && (
               <div className="text-center mb-4">
-                <h3 className="text-lg font-medium underline">Preview of Captured Image</h3>
-                <img src={capturedImage} alt="Captured" className="border rounded-md mb-2 w-64 h-48 md:w-72 md:h-56 object-cover" />
+                <h3 className="text-lg font-medium underline">
+                  Preview of Captured Image
+                </h3>
+                <img
+                  src={capturedImage}
+                  alt="Captured"
+                  className="border rounded-md mb-2 w-64 h-48 md:w-72 md:h-56 object-cover"
+                />
               </div>
             )}
             <button

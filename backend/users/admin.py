@@ -52,7 +52,7 @@ class UserAdmin(BaseUserAdmin):
 # Custom admin class for PatientProfile
 class PatientProfileAdmin(admin.ModelAdmin):
     model = PatientProfile
-    list_display = ("user", "name", "dob", "gender", "blood_group")
+    list_display = ("user", "name","charak_id", "dob", "gender", "blood_group")
     list_filter = ("blood_group", "dob")
     search_fields = ("user__username", "name", "blood_group")
 
@@ -66,6 +66,7 @@ class DoctorProfileAdmin(admin.ModelAdmin):
         "specialization",
         "gender",
         "dob",
+        "charak_id",
         "blood_group",
         "experience",
     )
