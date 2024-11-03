@@ -29,12 +29,9 @@ class VitalDataConsumer(AsyncWebsocketConsumer):
         super().__init__()
         self.device_id = None
         self.mqtt_client = None
-
     async def connect(self):
-        token = self.scope["query_string"].decode().split("=")[-1]  # Extract token
-        self.device_id = (
-            self.scope["query_string"].decode().split("&")[0].split("=")[-1]
-        )  # Extract device_id
+        token = self.scope["query_string"].decode().split("=")[-1]
+        self.device_id = self.scope["query_string"].decode().split("&")[0].split("=")[-1]
 
         try:
             validated_token = await self.get_validated_token(token)
@@ -50,6 +47,9 @@ class VitalDataConsumer(AsyncWebsocketConsumer):
 
                 # Register the new connection
                 active_device_connections[self.device_id] = self.channel_name
+
+                # Reset existing data if any
+                await self.reset_existing_data()
 
                 await self.accept()
                 await self.send(
@@ -73,6 +73,7 @@ class VitalDataConsumer(AsyncWebsocketConsumer):
         except InvalidToken:
             await self.send(text_data=json.dumps({"error": "Invalid token"}))
             await self.close()
+
 
     async def disconnect(self, close_code):
         if self.device_id:
@@ -454,7 +455,39 @@ class VitalDataConsumer(AsyncWebsocketConsumer):
             else:
                 # Handle the case where no patient data exists
                 print(f"No patient data found for {patient_profile}")
-                
+    @sync_to_async
+    def reset_existing_data(self):
+        """Reset existing data fields to None or default before new calculations."""
+        if self.role == "doctor":
+            doctor_profile = self.user.doctorprofile
+            if DoctorData.objects.filter(doctor=doctor_profile).exists():
+                doctor_data = DoctorData.objects.filter(doctor=doctor_profile).latest("created_at")
+                doctor_data.temperature = None
+                doctor_data.glucose_level = None
+                doctor_data.glucose_samples = None
+                doctor_data.heart_rate = None
+                doctor_data.spo2 = None
+                doctor_data.heart_rate_bp = None
+                doctor_data.sys = None
+                doctor_data.dia = None
+                doctor_data.height = None
+                doctor_data.weight = None
+                doctor_data.save()
+        elif self.role == "patient":
+            patient_profile = self.user.patientprofile
+            if PatientData.objects.filter(patient=patient_profile).exists():
+                patient_data = PatientData.objects.filter(patient=patient_profile).latest("created_at")
+                patient_data.temperature = None
+                patient_data.glucose_level = None
+                patient_data.glucose_samples = None
+                patient_data.heart_rate = None
+                patient_data.spo2 = None
+                patient_data.heart_rate_bp = None
+                patient_data.sys = None
+                patient_data.dia = None
+                patient_data.height = None
+                patient_data.weight = None
+                patient_data.save()            
     @sync_to_async
     def get_validated_token(self, token):
         return UntypedToken(token)

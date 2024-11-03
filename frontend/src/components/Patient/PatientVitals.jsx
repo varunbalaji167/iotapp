@@ -1053,6 +1053,7 @@ const PatientVitals = () => {
   const fetchTemperature = async () => {
     const token = JSON.parse(localStorage.getItem("token"));
     if (!token || !token.access) return;
+    setLoadingT(true);
 
     const headers = { Authorization: "Bearer " + token.access };
 
@@ -1085,7 +1086,7 @@ const PatientVitals = () => {
         }`
       );
     } finally {
-      setLoadingT(false);
+      // setLoadingT(false);
     }
     setLoadingT(false);
   };
@@ -1094,6 +1095,7 @@ const PatientVitals = () => {
     console.log("called fetchoximeter");
     const token = JSON.parse(localStorage.getItem("token"));
     if (!token || !token.access) return;
+    setLoadingO(true);
 
     const headers = { Authorization: "Bearer " + token.access };
 
@@ -1367,7 +1369,7 @@ const PatientVitals = () => {
           setStatusMessageB("BP Sensor Initialized");
           setSensorErrorPromptB(false);
         } else if (data.Subject == "Glucose") {
-          setStatusMessageB("Glucose Sensor Initialized");
+          setStatusMessageG("Glucose Sensor Initialized");
           setSensorErrorPromptG(false);
         } else if (data.Subject == "Height") {
           setStatusMessageH("Height Sensor Initialized");
@@ -1380,22 +1382,22 @@ const PatientVitals = () => {
         clearTimeout(hiResponseTimeout);
         if (data.Subject == "Temperature") {
           setStatusMessageT("Sensor Initialization Failed");
-          handleSkip();
+          handleSkipT();
         } else if (data.Subject == "Oximeter") {
           setStatusMessageO("Sensor Initialization Failed");
-          handleSkip();
+          handleSkipO();
         } else if (data.Subject == "BP") {
           setStatusMessageB("Sensor Initialization Failed");
-          handleSkip();
+          handleSkipB();
         } else if (data.Subject == "Glucose") {
           setStatusMessageG("Sensor Initialization Failed");
-          handleSkip();
+          handleSkipG();
         } else if (data.Subject == "Height") {
           setStatusMessageH("Sensor Initialization Failed");
-          handleSkip();
+          handleSkipH();
         } else if (data.Subject == "Weight") {
           setStatusMessageW("Sensor Initialization Failed");
-          handleSkip();
+          handleSkipW();
         }
         toast.error("Sensor Initialization Failed. Skipping...");
       } else if (data.Status === "Result Calculated") {
@@ -1459,28 +1461,34 @@ const PatientVitals = () => {
       } else if (data.Status === "Sensor Reading Failed") {
         clearTimeout(hiResponseTimeout);
         if (data.Subject == "Temperature") {
-          setStatusMessageT("Sensor Reading Failed");
+          setStatusMessageT("Please place your Finger properly.");
           setSensorErrorPromptT(true);
+          setLoadingT(false);
         }
         if (data.Subject == "Oximeter") {
-          setStatusMessageO("Sensor Reading Failed");
+          setStatusMessageO("Please place your Finger properly.");
           setSensorErrorPromptO(true);
+          setLoadingO(false);
         }
         if (data.Subject == "BP") {
-          setStatusMessageB("Sensor Reading Failed");
+          setStatusMessageB("Please wear your BP Cuff Properly and place your Wrist at Heart Level");
           setSensorErrorPromptB(true);
+          setLoadingB(false);
         }
         if (data.Subject == "Glucose") {
-          setStatusMessageG("Sensor Reading Failed");
+          setStatusMessageG("Please place your Finger properly.");
           setSensorErrorPromptG(true);
+          setLoadingG(false);
         }
         if (data.Subject == "Height") {
           setStatusMessageH("Sensor Reading Failed");
           setSensorErrorPromptH(true);
+          setLoadingH(false);
         }
         if (data.Subject == "Weight") {
           setStatusMessageW("Sensor Reading Failed");
           setSensorErrorPromptW(true);
+          setLoadingW(null);
         }
       }
     };
@@ -1599,6 +1607,14 @@ const PatientVitals = () => {
     setHardwareConfigured(false);
 
     setTemperature(null);
+    setGlucose(null);
+    setHeartRateBP(null);
+    setHeart_Rate(null);
+    setDia(null);
+    setSPO2(null);
+    setSys(null);
+    setHeight(null);
+    setWeight(null);
 
     setLoadingT(false);
     setLoadingO(false);
@@ -1622,48 +1638,157 @@ const PatientVitals = () => {
     setSensorErrorPromptW(false);
   };
 
-  const handleRetry = () => {
+  const handleRetryT = () => {
     if (socket) {
       socket.send(JSON.stringify({ message: "Temperature" }));
 
       setSensorErrorPromptT(false);
-      setSensorErrorPromptG(false);
-      setSensorErrorPromptO(false);
-      setSensorErrorPromptB(false);
-      setSensorErrorPromptH(false);
-      setSensorErrorPromptW(false);
-
       setLoadingT(true);
+    }
+  };
+
+  const handleSkipT = () => {
+    setSensorErrorPromptT(false);
+    setStatusMessageT("");
+    setLoadingT(false);
+    setTemperature(null);
+  };
+
+  const handleRetryO = () => {
+    if (socket) {
+      socket.send(JSON.stringify({ message: "Oximeter" }));
+
+      setSensorErrorPromptO(false);
       setLoadingO(true);
+    }
+  };
+
+  const handleSkipO = () => {
+    setSensorErrorPromptO(false);
+    setStatusMessageO("");
+    setLoadingO(false);
+    setHeart_Rate(null);
+    setSPO2(null);
+  };
+
+  const handleRetryB = () => {
+    if (socket) {
+      socket.send(JSON.stringify({ message: "BP" }));
+
+      setSensorErrorPromptB(false);
       setLoadingB(true);
+    }
+  };
+
+  const handleSkipB = () => {
+    setSensorErrorPromptB(false);
+    setStatusMessageB("");
+    setLoadingB(false);
+    setHeartRateBP(null);
+    setSys(null);
+    setDia(null);
+  };
+
+  const handleRetryG = () => {
+    if (socket) {
+      socket.send(JSON.stringify({ message: "Glucose" }));
+
+      setSensorErrorPromptG(false);
       setLoadingG(true);
+    }
+  };
+
+  const handleSkipG = () => {
+    setSensorErrorPromptG(false);
+    setStatusMessageG("");
+    setLoadingG(false);
+    setGlucose(null);
+  };
+
+  const handleRetryH = () => {
+    if (socket) {
+      socket.send(JSON.stringify({ message: "Height" }));
+
+      setSensorErrorPromptH(false);
       setLoadingH(true);
+    }
+  };
+
+  const handleSkipH = () => {
+    setSensorErrorPromptH(false);
+    setStatusMessageH("");
+    setLoadingH(false);
+    setHeight(null);
+  };
+
+  const handleRetryW = () => {
+    if (socket) {
+      socket.send(JSON.stringify({ message: "Weight" }));
+
+      setSensorErrorPromptW(false);
       setLoadingW(true);
     }
   };
 
-  const handleSkip = () => {
-    setSensorErrorPromptT(false);
-    setSensorErrorPromptG(false);
-    setSensorErrorPromptO(false);
-    setSensorErrorPromptB(false);
-    setSensorErrorPromptH(false);
+  const handleSkipW = () => {
     setSensorErrorPromptW(false);
-
-    setStatusMessageT("");
-    setStatusMessageO("");
-    setStatusMessageB("");
-    setStatusMessageG("");
-    setStatusMessageH("");
     setStatusMessageW("");
-
-    setLoadingT(false);
-    setLoadingO(false);
-    setLoadingB(false);
-    setLoadingG(false);
-    setLoadingH(false);
     setLoadingW(false);
+    setWeight(null);
   };
+
+  // const handleRetry = () => {
+  //   if (socket) {
+  //     socket.send(JSON.stringify({ message: "Temperature" }));
+
+  //     setSensorErrorPromptT(false);
+  //     setSensorErrorPromptG(false);
+  //     setSensorErrorPromptO(false);
+  //     setSensorErrorPromptB(false);
+  //     setSensorErrorPromptH(false);
+  //     setSensorErrorPromptW(false);
+
+  //     setLoadingT(true);
+  //     setLoadingO(true);
+  //     setLoadingB(true);
+  //     setLoadingG(true);
+  //     setLoadingH(true);
+  //     setLoadingW(true);
+  //   }
+  // };
+
+  // const handleSkip = () => {
+  //   setSensorErrorPromptT(false);
+  //   setSensorErrorPromptG(false);
+  //   setSensorErrorPromptO(false);
+  //   setSensorErrorPromptB(false);
+  //   setSensorErrorPromptH(false);
+  //   setSensorErrorPromptW(false);
+
+  //   setStatusMessageT("");
+  //   setStatusMessageO("");
+  //   setStatusMessageB("");
+  //   setStatusMessageG("");
+  //   setStatusMessageH("");
+  //   setStatusMessageW("");
+
+  //   setLoadingT(false);
+  //   setLoadingO(false);
+  //   setLoadingB(false);
+  //   setLoadingG(false);
+  //   setLoadingH(false);
+  //   setLoadingW(false);
+
+  //   setTemperature(null);
+  //   setGlucose(null);
+  //   setHeartRateBP(null);
+  //   setHeart_Rate(null);
+  //   setDia(null);
+  //   setSPO2(null);
+  //   setSys(null);
+  //   setHeight(null);
+  //   setWeight(null);
+  // };
 
   // Show toast when hardware is configured
   useEffect(() => {
@@ -1765,8 +1890,8 @@ const PatientVitals = () => {
                 handleConnect={handleConnect}
                 disconnectSocket={disconnectSocket}
                 disconnectSocket1={disconnectSocket1}
-                handleRetry={handleRetry}
-                handleSkip={handleSkip}
+                handleRetry={handleRetryT}
+                handleSkip={handleSkipT}
                 hardwareConfigured={hardwareConfigured}
                 sensorErrorPromptt={sensorErrorPromptt}
                 statusMessaget={statusMessaget}
@@ -1790,8 +1915,8 @@ const PatientVitals = () => {
                 handleConnect={handleConnect}
                 disconnectSocket={disconnectSocket}
                 disconnectSocket1={disconnectSocket1}
-                handleRetry={handleRetry}
-                handleSkip={handleSkip}
+                handleRetry={handleRetryO}
+                handleSkip={handleSkipO}
                 hardwareConfigured={hardwareConfigured}
                 sensorErrorPrompto={sensorErrorPrompto}
                 statusMessageo={statusMessageo}
@@ -1815,8 +1940,8 @@ const PatientVitals = () => {
                 handleConnect={handleConnect}
                 disconnectSocket={disconnectSocket}
                 disconnectSocket1={disconnectSocket1}
-                handleRetry={handleRetry}
-                handleSkip={handleSkip}
+                handleRetry={handleRetryG}
+                handleSkip={handleSkipG}
                 hardwareConfigured={hardwareConfigured}
                 sensorErrorPromptg={sensorErrorPromptg}
                 statusMessageg={statusMessageg}
@@ -1839,8 +1964,8 @@ const PatientVitals = () => {
                 handleConnect={handleConnect}
                 disconnectSocket={disconnectSocket}
                 disconnectSocket1={disconnectSocket1}
-                handleRetry={handleRetry}
-                handleSkip={handleSkip}
+                handleRetry={handleRetryB}
+                handleSkip={handleSkipB}
                 hardwareConfigured={hardwareConfigured}
                 sensorErrorPromptb={sensorErrorPromptb}
                 statusMessageb={statusMessageb}
@@ -1868,8 +1993,8 @@ const PatientVitals = () => {
                     handleConnect={handleConnect}
                     disconnectSocket={disconnectSocket}
                     disconnectSocket1={disconnectSocket1}
-                    handleRetry={handleRetry}
-                    handleSkip={handleSkip}
+                    handleRetry={handleRetryH}
+                    handleSkip={handleSkipH}
                     hardwareConfigured={hardwareConfigured}
                     sensorErrorPrompth={sensorErrorPrompth}
                     statusMessageh={statusMessageh}
@@ -1892,8 +2017,8 @@ const PatientVitals = () => {
                     handleConnect={handleConnect}
                     disconnectSocket={disconnectSocket}
                     disconnectSocket1={disconnectSocket1}
-                    handleRetry={handleRetry}
-                    handleSkip={handleSkip}
+                    handleRetry={handleRetryW}
+                    handleSkip={handleSkipW}
                     hardwareConfigured={hardwareConfigured}
                     sensorErrorPromptw={sensorErrorPromptw}
                     statusMessagew={statusMessagew}

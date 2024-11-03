@@ -63,7 +63,7 @@ const HeightVitals = ({
         textColor = "text-yellow-800";
         Icon = FaInfoCircle;
         break;
-      case "Please place your finger properly.":
+      case "Sensor Reading Failed":
         bgColor = "bg-orange-100 border-l-4 border-orange-500";
         textColor = "text-orange-800";
         Icon = FaExclamationTriangle;
