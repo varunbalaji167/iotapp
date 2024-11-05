@@ -145,8 +145,8 @@ const PatientRecords = () => {
         ),
       },
       {
-        Header: "ABHA ID",
-        accessor: "unique_id",
+        Header: "Charak ID",
+        accessor: "charak_id",
       },
       {
         Header: "Name",
@@ -239,7 +239,7 @@ const PatientRecords = () => {
                     <tr
                       {...row.getRowProps()}
                       className="hover:bg-gray-50 transition-colors"
-                      key={row.original.unique_id || row.id}
+                      key={row.original.charak_id || row.id}
                     >
                       {row.cells.map((cell) => (
                         <td

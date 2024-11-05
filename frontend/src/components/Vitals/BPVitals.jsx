@@ -137,15 +137,17 @@ const BPVitals = ({
 
           {heart_rate_bp && sys && dia && (
             <p className="mt-6 text-lg text-gray-800">
-              Heart Rate:{" "}
-              <span className="font-bold text-blue-600">
-                {heart_rate_bp} bpm{" "}
-              </span>
+              
               Systolic BP:{" "}
               <span className="font-bold text-blue-600"> {sys} (mmHg) </span>
               Diastolic BP:{" "}
               <span className="font-bold text-blue-600"> {dia} (mmHg) </span>
+              Heart Rate:{" "}
+              <span className="font-bold text-blue-600">
+                {heart_rate_bp} bpm{" "}
+              </span>
             </p>
+            
           )}
         </>
       )}
