@@ -37,7 +37,7 @@ const PatientProfile = () => {
     const fetchProfile = async (accessToken) => {
       try {
         const response = await axios.get(
-          "http://127.0.0.1:8000/api/users/patientprofile/",
+          "http://147.79.67.165:8000/api/users/patientprofile/",
           {
             headers: {
               Authorization: "Bearer " + accessToken,
@@ -78,7 +78,7 @@ const PatientProfile = () => {
 
       try {
         const response = await axios.post(
-          "http://127.0.0.1:8000/api/users/refresh/",
+          "http://147.79.67.165:8000/api/users/refresh/",
           {
             refresh: refreshToken,
           }
@@ -183,7 +183,7 @@ const PatientProfile = () => {
 
         if (isProfileCreated) {
           await axios.put(
-            "http://127.0.0.1:8000/api/users/patientprofile/",
+            "http://147.79.67.165:8000/api/users/patientprofile/",
             formData,
             {
               headers: {
@@ -209,7 +209,7 @@ const PatientProfile = () => {
           });
         } else {
           await axios.post(
-            "http://127.0.0.1:8000/api/users/patientprofile/",
+            "http://147.79.67.165:8000/api/users/patientprofile/",
             formData,
             {
               headers: {
@@ -309,7 +309,7 @@ const PatientProfile = () => {
               src={
                 profile.profile_picture.startsWith("data:image")
                   ? profile.profile_picture
-                  : `http://127.0.0.1:8000${profile.profile_picture}`
+                  : `http://147.79.67.165:8000${profile.profile_picture}`
               }
               alt="Current Profile"
               className="rounded-full border-4 border-blue-300"

@@ -15,7 +15,7 @@ const DoctorNavbar = () => {
   return (
     <nav className="bg-gray-800 text-white shadow-md">
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-        <div className="text-lg font-bold">Health Nest</div>
+        <div className="text-lg font-bold">Portable Health Kiosk</div>
         <div className="hidden md:flex space-x-8">
           <Link
             to="/doctor"

@@ -18,7 +18,7 @@ SECRET_KEY = "django-insecure-62xg^o+nlgw%=%656vbd9cawck-e+yki##!go@j2%lh8a!7my8
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['147.79.67.165', 'localhost', '127.0.0.1']
 
 # Application definition
 INSTALLED_APPS = [
@@ -53,8 +53,8 @@ ROOT_URLCONF = "backend.urls"
 AUTH_USER_MODEL = "users.CustomUser"  # Ensure CustomUser model exists
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Replace with your frontend URL
-    "http://127.0.0.1:8000",
+    "http://147.79.67.165:3000",  # Replace with your frontend URL
+    "http://147.79.67.165:8000",
 ]
 
 REST_FRAMEWORK = {
@@ -94,7 +94,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],  # Adjust this if your Redis server runs on a different host/port
+            "hosts": [('147.79.67.165', 6379)],  # Adjust this if your Redis server runs on a different host/port
         },
     },
 }

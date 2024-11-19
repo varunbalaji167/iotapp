@@ -18,7 +18,7 @@ const Login = () => {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/api/users/login/",
+        "http://147.79.67.165:8000/api/users/login/",
         {
           username,
           password,
