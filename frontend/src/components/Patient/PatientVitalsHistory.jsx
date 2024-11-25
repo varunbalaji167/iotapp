@@ -52,7 +52,7 @@
 //   const fetchVitalHistory = async (accessToken) => {
 //     try {
 //       const response = await axios.get(
-//         "http://147.79.67.165:8000/api/users/patientvitals/history/",
+//         "https://147.79.67.165:8000/api/users/patientvitals/history/",
 //         {
 //           headers: { Authorization: "Bearer " + accessToken },
 //         }
@@ -75,7 +75,7 @@
 
 //     try {
 //       const response = await axios.post(
-//         "http://147.79.67.165:8000/api/users/refresh/",
+//         "https://147.79.67.165:8000/api/users/refresh/",
 //         {
 //           refresh: refreshToken,
 //         }
@@ -351,7 +351,7 @@ const PatientVitalsHistory = () => {
   const fetchVitalHistory = async (accessToken) => {
     try {
       const response = await axios.get(
-        "http://147.79.67.165:8000/api/users/patientvitals/history/",
+        "https://147.79.67.165:8000/api/users/patientvitals/history/",
         {
           headers: { Authorization: "Bearer " + accessToken },
         }
@@ -374,7 +374,7 @@ const PatientVitalsHistory = () => {
 
     try {
       const response = await axios.get(
-        "http://147.79.67.165:8000/api/users/generate-pdf/",
+        "https://147.79.67.165:8000/api/users/generate-pdf/",
         {
           headers: {
             Authorization: "Bearer " + accessToken,
@@ -405,7 +405,7 @@ const PatientVitalsHistory = () => {
 
     try {
       const response = await axios.post(
-        "http://147.79.67.165:8000/api/users/refresh/",
+        "https://147.79.67.165:8000/api/users/refresh/",
         {
           refresh: refreshToken,
         }

@@ -2,15 +2,21 @@
 import os
 import sys
 import threading
-from users.mqtt_client import setup_mqtt_client
+# from users.mqtt_client import setup_mqtt_client
+import environ
 
 # def run_mqtt_client():
 #     """Run the MQTT client in a separate thread."""
 #     client = setup_mqtt_client()
 #     client.loop_forever()
+env = environ.Env()
+environ.Env.read_env()
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', env('DJANGO_SETTINGS_MODULE', default='backend.settings'))
 
 def main():
     """Run administrative tasks."""
+
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
 
     # # Run MQTT client in a separate thread

@@ -40,7 +40,7 @@ const Register = () => {
 
     try {
       const response = await axios.post(
-        "http://147.79.67.165:8000/api/users/register/",
+        "https://147.79.67.165:8000/api/users/register/",
         {
           username,
           email,

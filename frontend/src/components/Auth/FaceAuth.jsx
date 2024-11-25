@@ -12,7 +12,7 @@
 //   const handleFaceAuthentication = async () => {
 //     try {
 //       const faceResponse = await axios.post(
-//         "http://147.79.67.165:8000/api/users/face-auth/",
+//         "https://147.79.67.165:8000/api/users/face-auth/",
 //         { username } // Send username to verify face
 //       );
 
@@ -95,7 +95,7 @@
 //     e.preventDefault();
 //     try {
 //       const faceResponse = await axios.post(
-//         "http://147.79.67.165:8000/api/users/face-auth/",
+//         "https://147.79.67.165:8000/api/users/face-auth/",
 //         { username } // Send username to verify face
 //       );
 
@@ -215,7 +215,7 @@ const FaceAuth = () => {
     e.preventDefault();
     try {
       const faceResponse = await axios.post(
-        "http://147.79.67.165:8000/api/users/face-auth/",
+        "https://147.79.67.165:8000/api/users/face-auth/",
         { username } // Send username to verify face
       );
 

@@ -32,7 +32,7 @@ const Admin = () => {
     }
 
     try {
-      const response = await axios.post("http://147.79.67.165:8000/api/users/refresh/", {
+      const response = await axios.post("https://147.79.67.165:8000/api/users/refresh/", {
         refresh: refreshToken,
       });
 
@@ -97,7 +97,7 @@ const Admin = () => {
 
     try {
       const response = await axios.post(
-        "http://147.79.67.165:8000/api/users/devices/",
+        "https://147.79.67.165:8000/api/users/devices/",
         formData,
         {
           headers: {
