@@ -41,7 +41,7 @@ def create():
     return data
 
 #-------------------------------------------------------------------------------------------------------------------
-def recog(data, camera):
+def recog(data, uid):
     # Use an absolute path for faces.xml
     fa_path = os.path.join(settings.BASE_DIR, 'users', 'faces.xml') 
     fa = cv2.CascadeClassifier(fa_path)
@@ -58,11 +58,9 @@ def recog(data, camera):
         nothing = None
         global user
         user = None
+        dump_path = os.path.join(settings.BASE_DIR, 'users/dump', f"{uid}.jpg") 
         
-        ret, frame = camera.get_frame()
-        if not ret:
-            print("Failed to grab frame from camera")
-            break
+        frame = cv2.imread(dump_path)
         
         frame = cv2.flip(frame, 1)
         frame = imutils.resize(frame, width=800)
