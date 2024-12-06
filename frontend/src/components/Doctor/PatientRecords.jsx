@@ -29,7 +29,7 @@ const PatientRecords = () => {
 
       try {
         const response = await axios.get(
-          "http://localhost:8000/api/users/patient-profiles/",
+          "http://localhost/api/users/patient-profiles/",
           {
             headers: {
               Authorization: `Bearer ${accessToken}`,
@@ -64,7 +64,7 @@ const PatientRecords = () => {
 
       try {
         const response = await axios.post(
-          "http://localhost:8000/api/users/refresh/",
+          "http://localhost/api/users/refresh/",
           {
             refresh: refreshToken,
           }
@@ -136,7 +136,7 @@ const PatientRecords = () => {
               value && value.startsWith("data:image")
                 ? value
                 : value
-                ? `http://localhost:8000${value}`
+                ? `http://localhost${value}`
                 : null
             }
             alt="Profile"

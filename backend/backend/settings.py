@@ -53,8 +53,9 @@ ROOT_URLCONF = "backend.urls"
 AUTH_USER_MODEL = "users.CustomUser"  # Ensure CustomUser model exists
 
 CORS_ALLOWED_ORIGINS = [
-    "https://147.79.67.165:3000",  # Replace with your frontend URL
-    "https://147.79.67.165:8000",
+    "http://147.79.67.165:3000",  # Replace with your frontend URL
+    "http://147.79.67.165",
+    "ws://147.79.67.165/ws/vitals",
 ]
 
 REST_FRAMEWORK = {
@@ -91,17 +92,18 @@ INSTALLED_APPS += ["django_extensions"]
 
 
 # WSGI_APPLICATION = "backend.wsgi.application"
-ASGI_APPLICATION = "backend.asgi.application"
+
 
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],  # Adjust this if your Redis server runs on a different host/port
+            "hosts": [('147.79.67.165', 6379)],  # Adjust this if your Redis server runs on a different host/port
         },
     },
 }
 
+ASGI_APPLICATION = "backend.asgi.application"
 
 # Database
 DATABASES = {

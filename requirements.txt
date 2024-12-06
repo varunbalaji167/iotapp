@@ -1,0 +1,14 @@
+django
+paho-mqtt
+channels
+channels_redis
+daphne
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+opencv-python
+face_recognition
+imutils
+PyPDF2
+reportlab
+mysql-connector-python

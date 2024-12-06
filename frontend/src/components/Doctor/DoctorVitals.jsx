@@ -74,7 +74,7 @@ const DoctorVitals = () => {
 
     try {
       const response = await axios.post(
-        "https://147.79.67.165:8000/api/users/refresh/",
+        "http://147.79.67.165/api/users/refresh/",
         {
           refresh: refreshToken,
         }
@@ -129,7 +129,7 @@ const DoctorVitals = () => {
 
     try {
       const response = await axios.get(
-        "https://147.79.67.165:8000/api/users/doctorvitals/",
+        "http://147.79.67.165/api/users/doctorvitals/",
         { headers }
       );
       // Assuming there's only one item in the response array
@@ -145,7 +145,7 @@ const DoctorVitals = () => {
     const headers = { Authorization: "Bearer " + accessToken };
 
     try {
-      await axios.get("https://147.79.67.165:8000/api/users/doctorprofile/", {
+      await axios.get("http://147.79.67.165/api/users/doctorprofile/", {
         headers,
       });
       setProfileExists(true);
@@ -167,7 +167,7 @@ const DoctorVitals = () => {
 
     try {
       const response = await axios.get(
-        "https://147.79.67.165:8000/api/users/devices/",
+        "http://147.79.67.165/api/users/devices/",
         { headers }
       );
       setDevices(response.data);
@@ -217,7 +217,7 @@ const DoctorVitals = () => {
     try {
       console.log(userRole);
       const response = await axios.get(
-        `https://147.79.67.165:8000/api/users/${userRole}vitals`,
+        `http://147.79.67.165/api/users/${userRole}vitals`,
         { headers }
       );
 
@@ -258,7 +258,7 @@ const DoctorVitals = () => {
     try {
       console.log(userRole);
       const response = await axios.get(
-        `https://147.79.67.165:8000/api/users/${userRole}vitals`,
+        `http://147.79.67.165/api/users/${userRole}vitals`,
         { headers }
       );
       if (Array.isArray(response.data) && response.data.length > 0) {
@@ -302,7 +302,7 @@ const DoctorVitals = () => {
     try {
       console.log(userRole);
       const response = await axios.get(
-        `https://147.79.67.165:8000/api/users/${userRole}vitals`,
+        `http://147.79.67.165/api/users/${userRole}vitals`,
         { headers }
       );
 
@@ -348,7 +348,7 @@ const DoctorVitals = () => {
 
     try {
       const response = await axios.get(
-        `https://147.79.67.165:8000/api/users/${userRole}vitals`,
+        `http://147.79.67.165/api/users/${userRole}vitals`,
         { headers }
       );
 
@@ -388,7 +388,7 @@ const DoctorVitals = () => {
     try {
       console.log(userRole);
       const response = await axios.get(
-        `https://147.79.67.165:8000/api/users/${userRole}vitals`,
+        `http://147.79.67.165/api/users/${userRole}vitals`,
         { headers }
       );
 
@@ -428,7 +428,7 @@ const DoctorVitals = () => {
     try {
       console.log(userRole);
       const response = await axios.get(
-        `https://147.79.67.165:8000/api/users/${userRole}vitals`,
+        `http://147.79.67.165/api/users/${userRole}vitals`,
         { headers }
       );
 
@@ -471,7 +471,7 @@ const DoctorVitals = () => {
     }
 
     const newSocket = new WebSocket(
-      `ws://147.79.67.165:8000/ws/vitals/?device_id=${deviceId}&token=${token.access}`
+      `ws://147.79.67.165/ws/vitals/?device_id=${deviceId}&token=${token.access}`
     );
 
     let hiResponseTimeout;

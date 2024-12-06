@@ -39,7 +39,7 @@ const PatientProfile = () => {
     const fetchProfile = async (accessToken) => {
       try {
         const response = await axios.get(
-          "https://147.79.67.165:8000/api/users/patientprofile/",
+          "http://147.79.67.165/api/users/patientprofile/",
           {
             headers: {
               Authorization: "Bearer " + accessToken,
@@ -80,7 +80,7 @@ const PatientProfile = () => {
 
       try {
         const response = await axios.post(
-          "https://147.79.67.165:8000/api/users/refresh/",
+          "http://147.79.67.165/api/users/refresh/",
           {
             refresh: refreshToken,
           }
@@ -186,7 +186,7 @@ const PatientProfile = () => {
 
         if (isProfileCreated) {
           await axios.put(
-            "https://147.79.67.165:8000/api/users/patientprofile/",
+            "http://147.79.67.165/api/users/patientprofile/",
             formData,
             {
               headers: {
@@ -212,7 +212,7 @@ const PatientProfile = () => {
           });
         } else {
           await axios.post(
-            "https://147.79.67.165:8000/api/users/patientprofile/",
+            "http://147.79.67.165/api/users/patientprofile/",
             formData,
             {
               headers: {
@@ -312,7 +312,7 @@ const PatientProfile = () => {
               src={
                 profile.profile_picture.startsWith("data:image")
                   ? profile.profile_picture
-                  : `https://147.79.67.165:8000${profile.profile_picture}`
+                  : `http://147.79.67.165${profile.profile_picture}`
               }
               alt="Current Profile"
               className="rounded-full border-4 border-blue-300"
@@ -571,7 +571,7 @@ export default PatientProfile;
 //     const fetchProfile = async (accessToken) => {
 //       try {
 //         const response = await axios.get(
-//           "https://147.79.67.165:8000/api/users/patientprofile/",
+//           "http://147.79.67.165/api/users/patientprofile/",
 //           {
 //             headers: {
 //               Authorization: "Bearer " + accessToken,
@@ -612,7 +612,7 @@ export default PatientProfile;
 
 //       try {
 //         const response = await axios.post(
-//           "https://147.79.67.165:8000/api/users/refresh/",
+//           "http://147.79.67.165/api/users/refresh/",
 //           {
 //             refresh: refreshToken,
 //           }
@@ -717,7 +717,7 @@ export default PatientProfile;
 
 //         if (isProfileCreated) {
 //           await axios.put(
-//             "https://147.79.67.165:8000/api/users/patientprofile/",
+//             "http://147.79.67.165/api/users/patientprofile/",
 //             formData,
 //             {
 //               headers: {
@@ -743,7 +743,7 @@ export default PatientProfile;
 //           });
 //         } else {
 //           await axios.post(
-//             "https://147.79.67.165:8000/api/users/patientprofile/",
+//             "http://147.79.67.165/api/users/patientprofile/",
 //             formData,
 //             {
 //               headers: {
@@ -843,7 +843,7 @@ export default PatientProfile;
 //               src={
 //                 profile.profile_picture.startsWith("data:image")
 //                   ? profile.profile_picture
-//                   : `https://147.79.67.165:8000${profile.profile_picture}`
+//                   : `http://147.79.67.165${profile.profile_picture}`
 //               }
 //               alt="Current Profile"
 //               className="rounded-full border-4 border-blue-300"
