@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import Webcam from "react-webcam";
-import axios from "axios";
+import axiosInstance from "../../axiosInstance"
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -42,8 +42,8 @@ const DoctorProfile = () => {
   useEffect(() => {
     const fetchProfile = async (accessToken) => {
       try {
-        const response = await axios.get(
-          "http://147.79.67.165/api/users/doctorprofile/",
+        const response = await axiosInstance.get(
+          "/doctorprofile/",
           {
             headers: {
               Authorization: "Bearer " + accessToken,
@@ -82,8 +82,8 @@ const DoctorProfile = () => {
       }
 
       try {
-        const response = await axios.post(
-          "http://147.79.67.165/api/users/refresh/",
+        const response = await axiosInstance.post(
+          "/refresh/",
           {
             refresh: refreshToken,
           }
@@ -186,8 +186,8 @@ const DoctorProfile = () => {
         }
 
         if (isProfileCreated) {
-          await axios.put(
-            "http://147.79.67.165/api/users/doctorprofile/",
+          await axiosInstance.put(
+            "/doctorprofile/",
             formData,
             {
               headers: {
@@ -212,8 +212,8 @@ const DoctorProfile = () => {
             navigate("/doctor"); // Redirect to the doctor page
           });
         } else {
-          await axios.post(
-            "http://147.79.67.165/api/users/doctorprofile/",
+          await axiosInstance.post(
+            "/doctorprofile/",
             formData,
             {
               headers: {

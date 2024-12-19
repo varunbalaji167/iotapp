@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
-import axios from "axios";
+import axiosInstance from "../../axiosInstance"
 import { FaUser, FaLock, FaEye, FaEyeSlash } from "react-icons/fa"; // Importing icons
 import Swal from "sweetalert2"; // Import SweetAlert2
 import { Link, useLocation } from "react-router-dom";
@@ -17,8 +17,8 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        "http://147.79.67.165/api/users/login/",
+      const response = await axiosInstance.post(
+        "/login/",
         {
           username,
           password,

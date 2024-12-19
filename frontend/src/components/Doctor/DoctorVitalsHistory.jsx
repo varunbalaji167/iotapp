@@ -1,5 +1,5 @@
 // import React, { useEffect, useState } from "react";
-// import axios from "axios";
+// import axiosInstance from "axiosInstance";
 // import { jwtDecode } from "jwt-decode";
 // import { Line } from "react-chartjs-2";
 // import { useAuth } from "../../contexts/AuthContext";
@@ -51,8 +51,8 @@
 
 //   const fetchVitalHistory = async (accessToken) => {
 //     try {
-//       const response = await axios.get(
-//         "http://147.79.67.165/api/users/doctorvitals/history/",
+//       const response = await axiosInstance.get(
+//         "/doctorvitals/history/",
 //         {
 //           headers: { Authorization: "Bearer " + accessToken },
 //         }
@@ -74,8 +74,8 @@
 //     }
 
 //     try {
-//       const response = await axios.post(
-//         "http://147.79.67.165/api/users/refresh/",
+//       const response = await axiosInstance.post(
+//         "/refresh/",
 //         {
 //           refresh: refreshToken,
 //         }
@@ -297,7 +297,7 @@
 // export default DoctorVitalsHistory;
 
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axiosInstance from "../../axiosInstance"
 import { jwtDecode } from "jwt-decode";
 import { Line } from "react-chartjs-2";
 import { useAuth } from "../../contexts/AuthContext";
@@ -349,8 +349,8 @@ const DoctorVitalsHistory = () => {
 
   const fetchVitalHistory = async (accessToken) => {
     try {
-      const response = await axios.get(
-        "http://147.79.67.165/api/users/doctorvitals/history/",
+      const response = await axiosInstance.get(
+        "/doctorvitals/history/",
         {
           headers: { Authorization: "Bearer " + accessToken },
         }
@@ -372,8 +372,8 @@ const DoctorVitalsHistory = () => {
     }
 
     try {
-      const response = await axios.get(
-        "http://147.79.67.165/api/users/generate-pdf/",
+      const response = await axiosInstance.get(
+        "/generate-pdf/",
         {
           headers: {
             Authorization: "Bearer " + accessToken,
@@ -403,8 +403,8 @@ const DoctorVitalsHistory = () => {
     }
 
     try {
-      const response = await axios.post(
-        "http://147.79.67.165/api/users/refresh/",
+      const response = await axiosInstance.post(
+        "/refresh/",
         {
           refresh: refreshToken,
         }

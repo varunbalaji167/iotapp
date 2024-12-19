@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import axios from "axios";
+import axiosInstance from "../../axiosInstance"
 import { toast } from "react-toastify";
 import { jwtDecode } from "jwt-decode";
 import "react-toastify/dist/ReactToastify.css";
@@ -73,8 +73,8 @@ const DoctorVitals = () => {
     }
 
     try {
-      const response = await axios.post(
-        "http://147.79.67.165/api/users/refresh/",
+      const response = await axiosInstance.post(
+        "/refresh/",
         {
           refresh: refreshToken,
         }
@@ -128,8 +128,8 @@ const DoctorVitals = () => {
     const headers = { Authorization: "Bearer " + accessToken };
 
     try {
-      const response = await axios.get(
-        "http://147.79.67.165/api/users/doctorvitals/",
+      const response = await axiosInstance.get(
+        "/doctorvitals/",
         { headers }
       );
       // Assuming there's only one item in the response array
@@ -145,7 +145,7 @@ const DoctorVitals = () => {
     const headers = { Authorization: "Bearer " + accessToken };
 
     try {
-      await axios.get("http://147.79.67.165/api/users/doctorprofile/", {
+      await axiosInstance.get("/doctorprofile/", {
         headers,
       });
       setProfileExists(true);
@@ -166,8 +166,8 @@ const DoctorVitals = () => {
     const headers = { Authorization: "Bearer " + accessToken };
 
     try {
-      const response = await axios.get(
-        "http://147.79.67.165/api/users/devices/",
+      const response = await axiosInstance.get(
+        "/devices/",
         { headers }
       );
       setDevices(response.data);
@@ -216,8 +216,8 @@ const DoctorVitals = () => {
 
     try {
       console.log(userRole);
-      const response = await axios.get(
-        `http://147.79.67.165/api/users/${userRole}vitals`,
+      const response = await axiosInstance.get(
+        `/${userRole}vitals`,
         { headers }
       );
 
@@ -257,8 +257,8 @@ const DoctorVitals = () => {
 
     try {
       console.log(userRole);
-      const response = await axios.get(
-        `http://147.79.67.165/api/users/${userRole}vitals`,
+      const response = await axiosInstance.get(
+        `/${userRole}vitals`,
         { headers }
       );
       if (Array.isArray(response.data) && response.data.length > 0) {
@@ -301,8 +301,8 @@ const DoctorVitals = () => {
 
     try {
       console.log(userRole);
-      const response = await axios.get(
-        `http://147.79.67.165/api/users/${userRole}vitals`,
+      const response = await axiosInstance.get(
+        `/${userRole}vitals`,
         { headers }
       );
 
@@ -347,8 +347,8 @@ const DoctorVitals = () => {
     setLoadingG(true);
 
     try {
-      const response = await axios.get(
-        `http://147.79.67.165/api/users/${userRole}vitals`,
+      const response = await axiosInstance.get(
+        `/${userRole}vitals`,
         { headers }
       );
 
@@ -387,8 +387,8 @@ const DoctorVitals = () => {
 
     try {
       console.log(userRole);
-      const response = await axios.get(
-        `http://147.79.67.165/api/users/${userRole}vitals`,
+      const response = await axiosInstance.get(
+        `/${userRole}vitals`,
         { headers }
       );
 
@@ -427,8 +427,8 @@ const DoctorVitals = () => {
 
     try {
       console.log(userRole);
-      const response = await axios.get(
-        `http://147.79.67.165/api/users/${userRole}vitals`,
+      const response = await axiosInstance.get(
+        `/${userRole}vitals`,
         { headers }
       );
 

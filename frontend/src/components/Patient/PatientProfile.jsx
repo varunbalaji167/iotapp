@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import Webcam from "react-webcam";
-import axios from "axios";
+import axiosInstance from "../../axiosInstance"
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -38,8 +38,8 @@ const PatientProfile = () => {
   useEffect(() => {
     const fetchProfile = async (accessToken) => {
       try {
-        const response = await axios.get(
-          "http://147.79.67.165/api/users/patientprofile/",
+        const response = await axiosInstance.get(
+          "/patientprofile/",
           {
             headers: {
               Authorization: "Bearer " + accessToken,
@@ -79,8 +79,8 @@ const PatientProfile = () => {
       }
 
       try {
-        const response = await axios.post(
-          "http://147.79.67.165/api/users/refresh/",
+        const response = await axiosInstance.post(
+          "/refresh/",
           {
             refresh: refreshToken,
           }
@@ -185,8 +185,8 @@ const PatientProfile = () => {
         let response;
 
         if (isProfileCreated) {
-          await axios.put(
-            "http://147.79.67.165/api/users/patientprofile/",
+          await axiosInstance.put(
+            "/patientprofile/",
             formData,
             {
               headers: {
@@ -211,8 +211,8 @@ const PatientProfile = () => {
             navigate("/patient"); // Redirect to the patient page
           });
         } else {
-          await axios.post(
-            "http://147.79.67.165/api/users/patientprofile/",
+          await axiosInstance.post(
+            "/patientprofile/",
             formData,
             {
               headers: {
@@ -535,7 +535,7 @@ export default PatientProfile;
 // import React, { useState, useEffect, useRef } from "react";
 // import { useAuth } from "../../contexts/AuthContext";
 // import Webcam from "react-webcam";
-// import axios from "axios";
+// import axiosInstance from "axiosInstance";
 // import { jwtDecode } from "jwt-decode";
 // import { useNavigate } from "react-router-dom";
 // import Swal from "sweetalert2";
@@ -570,8 +570,8 @@ export default PatientProfile;
 //   useEffect(() => {
 //     const fetchProfile = async (accessToken) => {
 //       try {
-//         const response = await axios.get(
-//           "http://147.79.67.165/api/users/patientprofile/",
+//         const response = await axiosInstance.get(
+//           "/patientprofile/",
 //           {
 //             headers: {
 //               Authorization: "Bearer " + accessToken,
@@ -611,8 +611,8 @@ export default PatientProfile;
 //       }
 
 //       try {
-//         const response = await axios.post(
-//           "http://147.79.67.165/api/users/refresh/",
+//         const response = await axiosInstance.post(
+//           "/refresh/",
 //           {
 //             refresh: refreshToken,
 //           }
@@ -716,8 +716,8 @@ export default PatientProfile;
 //         }
 
 //         if (isProfileCreated) {
-//           await axios.put(
-//             "http://147.79.67.165/api/users/patientprofile/",
+//           await axiosInstance.put(
+//             "/patientprofile/",
 //             formData,
 //             {
 //               headers: {
@@ -742,8 +742,8 @@ export default PatientProfile;
 //             navigate("/patient"); // Redirect to the patient page
 //           });
 //         } else {
-//           await axios.post(
-//             "http://147.79.67.165/api/users/patientprofile/",
+//           await axiosInstance.post(
+//             "/patientprofile/",
 //             formData,
 //             {
 //               headers: {

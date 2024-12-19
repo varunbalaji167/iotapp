@@ -1,6 +1,6 @@
 // import React, { useState } from "react";
 // import { useAuth } from "../../contexts/AuthContext";
-// import axios from "axios";
+// import axiosInstance from "axiosInstance";
 // import Swal from "sweetalert2";
 // import { Link} from "react-router-dom";
 
@@ -11,8 +11,8 @@
 
 //   const handleFaceAuthentication = async () => {
 //     try {
-//       const faceResponse = await axios.post(
-//         "http://147.79.67.165/api/users/face-auth/",
+//       const faceResponse = await axiosInstance.post(
+//         "/face-auth/",
 //         { username } // Send username to verify face
 //       );
 
@@ -83,7 +83,7 @@
 
 // import React, { useState } from "react";
 // import { useAuth } from "../../contexts/AuthContext";
-// import axios from "axios";
+// import axiosInstance from "axiosInstance";
 // import Swal from "sweetalert2";
 // import { Link } from "react-router-dom";
 
@@ -94,8 +94,8 @@
 //   const handleFaceAuthentication = async (e) => {
 //     e.preventDefault();
 //     try {
-//       const faceResponse = await axios.post(
-//         "http://147.79.67.165/api/users/face-auth/",
+//       const faceResponse = await axiosInstance.post(
+//         "/face-auth/",
 //         { username } // Send username to verify face
 //       );
 
@@ -169,7 +169,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import axios from "axios";
+import axiosInstance from "../../axiosInstance"
 import Swal from "sweetalert2";
 import { Link } from "react-router-dom";
 
@@ -214,8 +214,8 @@ const FaceAuth = () => {
   const handleFaceAuthentication = async (e) => {
     e.preventDefault();
     try {
-      const faceResponse = await axios.post(
-        "http://147.79.67.165/api/users/face-auth/",
+      const faceResponse = await axiosInstance.post(
+        "/face-auth/",
         { username } // Send username to verify face
       );
 

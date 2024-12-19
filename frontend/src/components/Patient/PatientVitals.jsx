@@ -1,6 +1,6 @@
 // import React, { useState, useEffect } from "react";
 // import { useAuth } from "../../contexts/AuthContext";
-// import axios from "axios";
+// import axiosInstance from "axiosInstance";
 // import { jwtDecode } from "jwt-decode";
 // import { toast } from "react-toastify";
 // import "react-toastify/dist/ReactToastify.css";
@@ -36,8 +36,8 @@
 //     }
 
 //     try {
-//       const response = await axios.post(
-//         "http://147.79.67.165/api/users/refresh/",
+//       const response = await axiosInstance.post(
+//         "/refresh/",
 //         {
 //           refresh: refreshToken,
 //         }
@@ -89,7 +89,7 @@
 //     const headers = { Authorization: "Bearer " + accessToken };
 
 //     try {
-//       await axios.get("http://147.79.67.165/api/users/patientprofile/", {
+//       await axiosInstance.get("/patientprofile/", {
 //         headers,
 //       });
 //       setProfileExists(true);
@@ -110,8 +110,8 @@
 //     const headers = { Authorization: "Bearer " + accessToken };
 
 //     try {
-//       const response = await axios.get(
-//         "http://147.79.67.165/api/users/devices/",
+//       const response = await axiosInstance.get(
+//         "/devices/",
 //         { headers }
 //       );
 //       setDevices(response.data);
@@ -249,7 +249,7 @@
 
 // import React, { useState, useEffect } from "react";
 // import { useAuth } from "../../contexts/AuthContext";
-// import axios from "axios";
+// import axiosInstance from "axiosInstance";
 // import { jwtDecode } from "jwt-decode";
 // import { toast } from "react-toastify";
 // import "react-toastify/dist/ReactToastify.css";
@@ -287,8 +287,8 @@
 //     }
 
 //     try {
-//       const response = await axios.post(
-//         "http://147.79.67.165/api/users/refresh/",
+//       const response = await axiosInstance.post(
+//         "/refresh/",
 //         {
 //           refresh: refreshToken,
 //         }
@@ -340,8 +340,8 @@
 //     const headers = { Authorization: "Bearer " + accessToken };
 
 //     try {
-//       const response = await axios.get(
-//         "http://147.79.67.165/api/users/patientvitals/history/",
+//       const response = await axiosInstance.get(
+//         "/patientvitals/history/",
 //         { headers }
 //       );
 //       // Assuming there's only one item in the response array
@@ -357,7 +357,7 @@
 //     const headers = { Authorization: "Bearer " + accessToken };
 
 //     try {
-//       await axios.get("http://147.79.67.165/api/users/patientprofile/", {
+//       await axiosInstance.get("/patientprofile/", {
 //         headers,
 //       });
 //       setProfileExists(true);
@@ -378,8 +378,8 @@
 //     const headers = { Authorization: "Bearer " + accessToken };
 
 //     try {
-//       const response = await axios.get(
-//         "http://147.79.67.165/api/users/devices/",
+//       const response = await axiosInstance.get(
+//         "/devices/",
 //         { headers }
 //       );
 //       setDevices(response.data);
@@ -544,7 +544,7 @@
 
 // import React, { useState, useEffect } from "react";
 // import { useAuth } from "../../contexts/AuthContext";
-// import axios from "axios";
+// import axiosInstance from "axiosInstance";
 // import {jwtDecode} from "jwt-decode"; // Fixed the import for jwtDecode
 // import { toast } from "react-toastify";
 // import "react-toastify/dist/ReactToastify.css";
@@ -582,8 +582,8 @@
 //     }
 
 //     try {
-//       const response = await axios.post(
-//         "http://147.79.67.165/api/users/refresh/",
+//       const response = await axiosInstance.post(
+//         "/refresh/",
 //         {
 //           refresh: refreshToken,
 //         }
@@ -637,8 +637,8 @@
 //     const headers = { Authorization: "Bearer " + accessToken };
 
 //     try {
-//       const response = await axios.get(
-//         "http://147.79.67.165/api/users/patientvitals/",
+//       const response = await axiosInstance.get(
+//         "/patientvitals/",
 //         { headers }
 //       );
 //       // Assuming there's only one item in the response array
@@ -654,7 +654,7 @@
 //     const headers = { Authorization: "Bearer " + accessToken };
 
 //     try {
-//       await axios.get("http://147.79.67.165/api/users/patientprofile/", {
+//       await axiosInstance.get("/patientprofile/", {
 //         headers,
 //       });
 //       setProfileExists(true);
@@ -675,8 +675,8 @@
 //     const headers = { Authorization: "Bearer " + accessToken };
 
 //     try {
-//       const response = await axios.get(
-//         "http://147.79.67.165/api/users/devices/",
+//       const response = await axiosInstance.get(
+//         "/devices/",
 //         { headers }
 //       );
 //       setDevices(response.data);
@@ -842,7 +842,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import axios from "axios";
+import axiosInstance from "../../axiosInstance"
 import { toast } from "react-toastify";
 import { jwtDecode } from "jwt-decode";
 import "react-toastify/dist/ReactToastify.css";
@@ -915,8 +915,8 @@ const PatientVitals = () => {
     }
 
     try {
-      const response = await axios.post(
-        "http://147.79.67.165/api/users/refresh/",
+      const response = await axiosInstance.post(
+        "/refresh/",
         {
           refresh: refreshToken,
         }
@@ -970,8 +970,8 @@ const PatientVitals = () => {
     const headers = { Authorization: "Bearer " + accessToken };
 
     try {
-      const response = await axios.get(
-        "http://147.79.67.165/api/users/patientvitals/",
+      const response = await axiosInstance.get(
+        "/patientvitals/",
         { headers }
       );
       // Assuming there's only one item in the response array
@@ -987,7 +987,7 @@ const PatientVitals = () => {
     const headers = { Authorization: "Bearer " + accessToken };
 
     try {
-      await axios.get("http://147.79.67.165/api/users/patientprofile/", {
+      await axiosInstance.get("/patientprofile/", {
         headers,
       });
       setProfileExists(true);
@@ -1008,8 +1008,8 @@ const PatientVitals = () => {
     const headers = { Authorization: "Bearer " + accessToken };
 
     try {
-      const response = await axios.get(
-        "http://147.79.67.165/api/users/devices/",
+      const response = await axiosInstance.get(
+        "/devices/",
         { headers }
       );
       setDevices(response.data);
@@ -1059,8 +1059,8 @@ const PatientVitals = () => {
 
     try {
       console.log(userRole);
-      const response = await axios.get(
-        `http://147.79.67.165/api/users/${userRole}vitals`,
+      const response = await axiosInstance.get(
+        `/${userRole}vitals`,
         { headers }
       );
 
@@ -1101,8 +1101,8 @@ const PatientVitals = () => {
 
     try {
       console.log(userRole);
-      const response = await axios.get(
-        `http://147.79.67.165/api/users/${userRole}vitals`,
+      const response = await axiosInstance.get(
+        `/${userRole}vitals`,
         { headers }
       );
       if (Array.isArray(response.data) && response.data.length > 0) {
@@ -1145,8 +1145,8 @@ const PatientVitals = () => {
 
     try {
       console.log(userRole);
-      const response = await axios.get(
-        `http://147.79.67.165/api/users/${userRole}vitals`,
+      const response = await axiosInstance.get(
+        `/${userRole}vitals`,
         { headers }
       );
 
@@ -1191,8 +1191,8 @@ const PatientVitals = () => {
     setLoadingG(true);
 
     try {
-      const response = await axios.get(
-        `http://147.79.67.165/api/users/${userRole}vitals`,
+      const response = await axiosInstance.get(
+        `/${userRole}vitals`,
         { headers }
       );
 
@@ -1231,8 +1231,8 @@ const PatientVitals = () => {
 
     try {
       console.log(userRole);
-      const response = await axios.get(
-        `http://147.79.67.165/api/users/${userRole}vitals`,
+      const response = await axiosInstance.get(
+        `/${userRole}vitals`,
         { headers }
       );
 
@@ -1271,8 +1271,8 @@ const PatientVitals = () => {
 
     try {
       console.log(userRole);
-      const response = await axios.get(
-        `http://147.79.67.165/api/users/${userRole}vitals`,
+      const response = await axiosInstance.get(
+        `/${userRole}vitals`,
         { headers }
       );
 

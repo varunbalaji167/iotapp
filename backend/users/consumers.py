@@ -23,6 +23,112 @@ User = get_user_model()
 
 active_device_connections = {}
 
+class OpenAccessVitalDataConsumer(AsyncWebsocketConsumer):
+    def __init__(self):
+        super().__init__()
+        self.device_id = None
+        self.mqtt_client = None
+
+    async def connect(self):
+        """Handle new WebSocket connections."""
+        self.device_id = self.scope["query_string"].decode().split("=")[-1]
+
+        # Check if the device ID is already in use
+        if self.device_id in active_device_connections:
+            await self.send(text_data=json.dumps({"error": "Device is busy"}))
+            await self.close()
+            return
+
+        # Register the new connection
+        active_device_connections[self.device_id] = self.channel_name
+
+        # Accept the WebSocket connection
+        await self.accept()
+        await self.send(
+            text_data=json.dumps({"status": "connected", "device_id": self.device_id})
+        )
+
+        # Add the consumer to all subject groups based on the device_id
+        for subject, group_prefix in subject_group_mapping.items():
+            group_name = f"{group_prefix}{self.device_id}"
+            await self.channel_layer.group_add(group_name, self.channel_name)
+
+        # Set up the MQTT client with the dynamic device_id
+        self.mqtt_client = setup_mqtt_client(self.device_id)
+
+    async def disconnect(self, close_code):
+        """Handle WebSocket disconnections."""
+        if self.device_id:
+            # Remove the connection from the active connections
+            if self.device_id in active_device_connections:
+                del active_device_connections[self.device_id]
+
+            # Remove the consumer from all groups
+            for subject, group_prefix in subject_group_mapping.items():
+                group_name = f"{group_prefix}{self.device_id}"
+                await self.channel_layer.group_discard(group_name, self.channel_name)
+
+    async def receive(self, text_data):
+        """Handle WebSocket messages for subscribing/publishing topics."""
+        text_data_json = json.loads(text_data)
+        message_type = text_data_json.get("message")
+
+        if message_type:
+            # Publish the data to the dynamic MQTT topic based on device_id
+            self.mqtt_client.publish(f"HK_Sub{self.device_id}", payload=message_type)
+        else:
+            await self.send(text_data=json.dumps({"error": "Invalid message type"}))
+
+    async def temperature_message(self, event):
+        """Handle temperature messages received in the temperature group."""
+        await self.process_and_send_message(event, "Temperature")
+
+    async def height_message(self, event):
+        """Handle height messages received in the height group."""
+        await self.process_and_send_message(event, "Height")
+
+    async def weight_message(self, event):
+        """Handle weight messages received in the weight group."""
+        await self.process_and_send_message(event, "Weight")
+
+    async def glucose_message(self, event):
+        """Handle glucose messages received in the glucose group."""
+        await self.process_and_send_message(event, "Glucose")
+
+    async def oximeter_message(self, event):
+        """Handle oximeter messages received in the oximeter group."""
+        await self.process_and_send_message(event, "Oximeter")
+
+    async def hardware_message(self, event):
+        """Handle hardware messages received in the hardware group."""
+        message = event["message"]
+        await self.send(text_data=json.dumps(json.loads(message)))
+
+    async def bp_message(self, event):
+        """Handle BP messages received in the BP group."""
+        await self.process_and_send_message(event, "BP")
+
+    async def process_and_send_message(self, event, group):
+        """Generic method to process and send messages from any group."""
+        message = event["message"]
+        message_data = json.loads(message)
+
+        status = message_data.get("Status")
+        subject = message_data.get("Subject")
+
+        if status:
+            await self.send(
+                text_data=json.dumps(
+                    {
+                        "Status": status,
+                        "Subject": subject,
+                        "Group": group,
+                        **{k: v for k, v in message_data.items() if k not in ["Status", "Subject"]},
+                    }
+                )
+            )
+        else:
+            await self.send(text_data=json.dumps({"error": f"Invalid data in {group} message"}))
 
 class VitalDataConsumer(AsyncWebsocketConsumer):
     def __init__(self):

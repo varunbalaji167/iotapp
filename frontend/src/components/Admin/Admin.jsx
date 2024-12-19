@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import axiosInstance from "../../axiosInstance"
 import { jwtDecode } from "jwt-decode";
 
 const Admin = () => {
@@ -32,7 +32,7 @@ const Admin = () => {
     }
 
     try {
-      const response = await axios.post("http://147.79.67.165/api/users/refresh/", {
+      const response = await axiosInstance.post("/refresh/", {
         refresh: refreshToken,
       });
 
@@ -96,8 +96,8 @@ const Admin = () => {
     }
 
     try {
-      const response = await axios.post(
-        "http://147.79.67.165/api/users/devices/",
+      const response = await axiosInstance.post(
+        "/devices/",
         formData,
         {
           headers: {
